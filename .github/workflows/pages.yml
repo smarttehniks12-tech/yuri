@@ -28,7 +28,7 @@ jobs:
       - name: Build site
         run: |
           mkdir -p _site
-          cp -r index.html style.css manifest.json service-worker.js js icons _site/
+          cp -r index.html style.css manifest.json service-worker.js js icons audio _site/
           touch _site/.nojekyll
           ls -la _site _site/icons
 
