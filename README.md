@@ -26,7 +26,7 @@ python3 -m http.server 8080
 
 1. На GitHub откройте репозиторий → **Settings → Pages**.
 2. В разделе *Build and deployment → Source* выберите **GitHub Actions** (один раз).
-3. Workflow `.github/workflows/pages.yml` сам соберёт игру (включая PNG-иконки из `icons/icon.svg`) и опубликует её. Перезапустить вручную: вкладка **Actions → Deploy game to GitHub Pages → Run workflow**.
+3. Workflow `.github/workflows/pages.yml` сам опубликует игру при каждом пуше. Перезапустить вручную: вкладка **Actions → Deploy game to GitHub Pages → Run workflow**.
 4. Через 1–2 минуты игра будет доступна по адресу `https://<логин>.github.io/<репозиторий>/`.
 5. Откройте этот адрес на iPhone в **Safari**.
 6. Нажмите кнопку **«Поделиться»** (квадрат со стрелкой) и выберите **«На экран „Домой“»**. В новых iOS этот пункт может быть в разделе «Ещё».
@@ -154,7 +154,7 @@ index.html            — точка входа, мета-теги PWA/iOS
 style.css             — интерфейс в стиле аниме RPG
 manifest.json         — манифест PWA
 service-worker.js     — офлайн-кэш
-icons/icon.svg        — иконка (PNG-версии генерируются при деплое)
+icons/                — иконки приложения (PNG + исходник SVG)
 js/utils.js           — математика, RNG, пространственная сетка
 js/storage.js         — сохранения (localStorage + резервная копия)
 js/audio.js           — процедурные звуки, музыка, вибрация
