@@ -247,8 +247,51 @@ button:active { transform: scale(0.96); }
 #toasts { position: fixed; top: calc(var(--st) + 10px); left: 0; right: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
 .toast { padding: 10px 16px; border-radius: 14px; background: rgba(14,10,28,.95); border: 1px solid; font-size: 13px; animation: fadeIn .3s ease; transition: opacity .5s, transform .5s; max-width: 90vw; }
 .toast.out { opacity: 0; transform: translateY(-10px); }
-#rotate { display: none; position: fixed; inset: 0; z-index: 50; background: #07050d; align-items: center; justify-content: center; text-align: center; }
-#rotate b { font-size: 60px; display: block; animation: spin 2s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) { #rotate { display: flex; } }
 body.ingame #ui { pointer-events: none; }
+
+/* ---------- vector icons ---------- */
+.ico { display: block; width: 82%; height: 82%; object-fit: contain; pointer-events: none; }
+.cur .ico { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-right: 3px; }
+.icon-btn .ico { width: 30px; height: 30px; }
+.logo-k { -webkit-text-stroke: 0; width: 120px; height: 120px; top: -26px; opacity: .35; }
+.logo-k .ico { width: 100%; height: 100%; }
+.res-k { display: flex; justify-content: center; }
+.res-k .ico { width: 96px; height: 96px; }
+.rew .ico { display: inline-block; width: 22px; height: 22px; vertical-align: -4px; margin-right: 4px; }
+.coffer .box span .ico { width: 54px; height: 54px; }
+.ctab i { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+.ctab i .ico { width: 100%; height: 100%; }
+.card > i .ico { width: 88%; height: 88%; }
+small.en { display: block; font-size: 10px; color: var(--dim); font-style: italic; letter-spacing: .5px; margin-top: 1px; }
+
+/* ---------- landscape (phone turned sideways) ---------- */
+@media (orientation: landscape) and (max-height: 640px) {
+  .screen { padding-top: calc(var(--st) + 6px); }
+  .menu-screen { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr auto; column-gap: 24px; }
+  .menu-top { grid-column: 1 / 3; }
+  .logo { grid-column: 1; grid-row: 2; margin-top: 0; align-self: start; }
+  .logo h1 { font-size: clamp(26px, 4.6vw, 42px); }
+  .logo-k { width: 80px; height: 80px; top: -14px; }
+  .menu-char { grid-column: 1; grid-row: 2; align-self: end; padding-top: 0; margin-bottom: 4px; }
+  .menu-btns { grid-column: 2; grid-row: 2; margin-top: 0; align-self: center; gap: 6px; }
+  .mgrid { gap: 6px; }
+  .mbtn { min-height: 44px; padding: 5px 8px; }
+  .mbtn.play { min-height: 52px; }
+  .ver { grid-column: 1 / 3; margin-top: 4px; }
+  .cspace { display: none; }
+  .chars-screen .ctabs, .chars-screen .cpanel { margin-left: 40%; }
+  .chars-screen .cpanel { margin-top: 8px; }
+  .locs, .arts, .achs, .upg, .tlist { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+  .tlist .sec { grid-column: 1 / 3; }
+  .statsT { grid-template-columns: 1fr 1fr; }
+  .overlay { justify-content: flex-start; padding-top: calc(var(--st) + 10px); }
+  .lvl-t { margin-bottom: 8px; }
+  .lvl-t b { font-size: 22px; }
+  .cards { flex-direction: row; max-width: 980px; align-items: stretch; }
+  .card { flex: 1; flex-direction: column; text-align: center; padding: 22px 10px 14px; }
+  .card > i { width: 64px; height: 64px; }
+  .coffer-wrap { padding-top: 2vh; }
+  .res { max-width: 760px; }
+  .pause .mbtn { max-width: 300px; }
+  .tut-in { max-width: 560px; }
+}

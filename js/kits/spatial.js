@@ -73,11 +73,7 @@
   }
 
   function redBlast(G, p, x, y, r, dmg, knock, stun) {
-    FX.disc(x, y, r * 1.2, 0.35, RED, 0.9);
-    FX.ring(x, y, 8, r * 1.1, 0.4, '#ff8a8a', 6);
-    FX.shock(x, y, r * 1.3, RED, 0.5);
-    FX.burst(x, y, RED, 22, 360, 6, 0.6);
-    FX.sparks(x, y, '#ffd0d0', 14, 520);
+    FX.explosion(x, y, r, RED, { core: '#ffd8d8', noDebris: true, smoke: '#2a0610' });
     CA.Audio.play('boom', 0.8);
     G.shake(7);
     A.hitCircle(x, y, r, dmg, { knock, src: 'sp_red', stun: stun || 0 });

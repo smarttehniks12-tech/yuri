@@ -11,7 +11,10 @@
     L: {},
     layout(G) {
       const W = G.W, H = G.H, s = G.safe;
-      const sc = U.clamp(Math.min(W / 430, H / 900), 0.78, 1.25);
+      const land = W > H;
+      // portrait: scale by width; landscape: scale by height so the cluster fits under the top HUD
+      const sc = land ? U.clamp(H / 470, 0.72, 1.15) : U.clamp(Math.min(W / 430, H / 900), 0.78, 1.25);
+      this.L.land = land;
       const bottom = H - s.b - 18 * sc;
       const right = W - s.r - 16 * sc;
       const L = this.L;
@@ -23,11 +26,14 @@
       L.ult = { id: 'ult', x: L.atk.x - 8 * sc, y: L.atk.y - dist - 72 * sc, r: 33 * sc };
       L.domain = { id: 'domain', x: L.ult.x - 76 * sc, y: L.ult.y + 18 * sc, r: 25 * sc };
       L.pause = { id: 'pause', x: W - s.r - 26, y: s.t + 30, r: 18 };
-      L.top = s.t;
+      L.top = s.t; L.left = s.l + 10;
+      this.baseCache = {};
       CA.Input.buttons = [L.atk].concat(L.skills).concat([L.ult, L.domain, L.pause]);
-      CA.Input.joyZone = { x0: s.l, y0: H * 0.3, x1: Math.min(W * 0.6, L.domain.x - L.domain.r - 10), y1: H };
+      CA.Input.joyZone = land
+        ? { x0: s.l, y0: H * 0.22, x1: Math.min(W * 0.5, L.skills[0].x - L.skills[0].r - 24), y1: H }
+        : { x0: s.l, y0: H * 0.3, x1: Math.min(W * 0.6, L.domain.x - L.domain.r - 10), y1: H };
       CA.Input.joy.radius = 56 * sc;
-      L.joyHome = { x: s.l + 90 * sc, y: bottom - 70 * sc };
+      L.joyHome = { x: s.l + (land ? 110 : 90) * sc, y: bottom - 70 * sc };
     },
 
     btn(ctx, b, opts) {
@@ -38,12 +44,21 @@
       const r = b.r * scale;
       ctx.save();
       ctx.translate(b.x, b.y);
-      // base
-      const gr = ctx.createRadialGradient(0, -r * 0.3, r * 0.1, 0, 0, r);
-      gr.addColorStop(0, opts.locked ? 'rgba(40,40,52,0.7)' : 'rgba(40,30,70,0.82)');
-      gr.addColorStop(1, opts.locked ? 'rgba(10,10,16,0.7)' : 'rgba(8,6,18,0.86)');
-      ctx.fillStyle = gr;
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+      // base (pre-rendered per radius/lock state)
+      const bk = (opts.locked ? 'l' : 'n') + Math.round(b.r);
+      let base = this.baseCache[bk];
+      if (!base) {
+        const R = Math.ceil(b.r), cv = U.makeCanvas(R * 4, R * 4), g = cv.getContext('2d');
+        g.scale(2, 2); g.translate(R, R);
+        const gr = g.createRadialGradient(0, -R * 0.3, R * 0.1, 0, 0, R);
+        gr.addColorStop(0, opts.locked ? 'rgba(40,40,52,0.7)' : 'rgba(46,32,84,0.85)');
+        gr.addColorStop(1, opts.locked ? 'rgba(10,10,16,0.7)' : 'rgba(8,6,18,0.88)');
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.fill();
+        g.strokeStyle = 'rgba(255,255,255,0.08)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, -R * 0.05, R * 0.82, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+        base = this.baseCache[bk] = { c: cv, R };
+      }
+      ctx.drawImage(base.c, -r, -r, r * 2, r * 2);
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
       ctx.lineWidth = 2;
       ctx.strokeStyle = opts.locked ? 'rgba(120,120,140,0.4)' : U.hexA(opts.color, opts.ready ? 0.95 : 0.45);
       ctx.stroke();
@@ -55,9 +70,8 @@
       }
       // icon
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '900 ' + Math.round(r * (opts.big ? 0.8 : 0.9)) + 'px ' + JP;
-      ctx.fillStyle = opts.locked ? 'rgba(160,160,180,0.35)' : '#ffffff';
-      ctx.fillText(opts.locked ? '封' : opts.kanji, 0, 1);
+      if (opts.locked) CA.Icons.draw(ctx, 'lock', 0, 0, r * 0.9, 'rgba(160,160,180,0.5)', { fill: 'rgba(60,60,80,0.6)' });
+      else CA.Icons.draw(ctx, opts.icon, 0, 0, r * (opts.big ? 1.15 : 1.25), opts.color, { fill: '#ffffff' });
       // cooldown pie
       if (opts.cd > 0 && !opts.locked) {
         ctx.fillStyle = 'rgba(0,0,0,0.62)';
@@ -119,17 +133,17 @@
       // XP bar
       this.bar(ctx, 10, top, W - 20, 6, p.xp / p.xpNext, '#7a3aff', '#d07aff');
       // portrait badge
-      const bx = 34, by = top + 34;
+      const bx = L.left + 24, by = top + 34;
       ctx.fillStyle = 'rgba(8,6,18,0.85)';
       ctx.beginPath(); ctx.arc(bx, by, 22, 0, TAU); ctx.fill();
       ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
       ctx.textAlign = 'center';
-      ctx.font = '900 22px ' + JP; ctx.fillStyle = col; ctx.fillText(p.ch.kanji, bx, by);
+      CA.Icons.draw(ctx, 'char_' + p.id, bx, by, 30, col, { fill: '#ffffff' });
       ctx.fillStyle = '#0a0812'; ctx.beginPath(); ctx.arc(bx + 16, by + 15, 10, 0, TAU); ctx.fill();
       ctx.strokeStyle = '#d07aff'; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.font = '800 11px ' + FONT; ctx.fillStyle = '#fff'; ctx.fillText('' + p.level, bx + 16, by + 15.5);
       // HP
-      const hx = 62, hw = Math.min(W * 0.46, 210);
+      const hx = L.left + 52, hw = Math.min(W * (L.land ? 0.3 : 0.46), 230);
       this.bar(ctx, hx, top + 16, hw, 13, p.hp / p.maxHp, p.hp < p.maxHp * 0.3 ? '#ff2a3a' : '#2ad870', p.hp < p.maxHp * 0.3 ? '#ff7a5a' : '#8affb0');
       ctx.textAlign = 'left'; ctx.font = '800 10px ' + FONT; ctx.fillStyle = '#fff';
       ctx.fillText(Math.ceil(p.hp) + ' / ' + p.maxHp, hx + 6, top + 23);
@@ -157,7 +171,7 @@
       ctx.font = '900 18px ' + FONT; ctx.fillStyle = '#fff';
       ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)';
       const tstr = U.fmtTime(G.t);
-      const tx = Math.max(hx + hw + 40, W * 0.66);
+      const tx = L.land ? W / 2 : Math.max(hx + hw + 40, W * 0.66);
       ctx.strokeText(tstr, tx, top + 22); ctx.fillText(tstr, tx, top + 22);
       ctx.font = '700 11px ' + FONT; ctx.fillStyle = '#d8c8ff';
       const ks = '☠ ' + U.fmtNum(G.run.kills);
@@ -184,7 +198,7 @@
         if (boss.armor > 0) { ctx.font = '800 10px ' + FONT; ctx.fillStyle = '#ffd27a'; ctx.fillText('ЗАЩИЩЁН ПЕЧАТЯМИ', W / 2, y + 30); }
       }
       // banners
-      for (const b of G.banners) this.drawBanner(ctx, G, b);
+      if (!G.ultFx && !G.domainFx) for (const b of G.banners) this.drawBanner(ctx, G, b);
 
       // ---------- controls ----------
       const j = CA.Input.joy;
@@ -204,7 +218,7 @@
       }
       const kit = p.kit;
       // attack
-      this.btn(ctx, L.atk, { kanji: kit.basic.kanji, color: col, ready: true, big: true, level: p.lv[kit.basic.id] });
+      this.btn(ctx, L.atk, { icon: kit.basic.icon, color: col, ready: true, big: true, level: p.lv[kit.basic.id] });
       if (kit.id === 'striker') {
         const st = p.state, w = kit.window(p);
         const inWin = st.ring >= 1 - w;
@@ -220,12 +234,12 @@
         const s = kit.skills[i], b = L.skills[i];
         const lv = p.lv[s.id] || 0;
         const cd = Math.max(0, p.cds[s.id] || 0), mx = p.cdMax[s.id] || 1;
-        this.btn(ctx, b, { kanji: s.kanji, color: col, locked: lv === 0, cd, cdFrac: cd / mx, ready: lv > 0 && cd <= 0, level: lv });
+        this.btn(ctx, b, { icon: s.icon, color: col, locked: lv === 0, cd, cdFrac: cd / mx, ready: lv > 0 && cd <= 0, level: lv });
       }
       // ult
       const uReady = p.ce >= p.ultCost() && !(G.ultActive > 0);
       this.ring(ctx, L.ult, p.ce / p.ultCost(), uReady ? '#ffffff' : col, 4);
-      this.btn(ctx, L.ult, { kanji: kit.ult.kanji, color: uReady ? '#ffffff' : col, ready: uReady, big: true, level: p.lv[kit.ult.id] });
+      this.btn(ctx, L.ult, { icon: kit.ult.icon, color: uReady ? '#ffffff' : col, ready: uReady, big: true, level: p.lv[kit.ult.id] });
       if (uReady) {
         ctx.font = '900 10px ' + FONT; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
         ctx.fillText('УЛЬТА', L.ult.x, L.ult.y + L.ult.r + 14);
@@ -236,7 +250,7 @@
       if (dl > 0) {
         const dReady = p.domainGauge >= 100 && !G.domain;
         this.ring(ctx, L.domain, p.domainGauge / 100, dReady ? '#ffd27a' : U.hexA('#ffd27a', 0.6), 3);
-        this.btn(ctx, L.domain, { kanji: '域', color: '#ffd27a', ready: dReady, level: dl });
+        this.btn(ctx, L.domain, { icon: 'domain', color: '#ffd27a', ready: dReady, level: dl });
         ctx.font = '800 9px ' + FONT; ctx.textAlign = 'center'; ctx.fillStyle = dReady ? '#ffd27a' : 'rgba(255,210,122,0.6)';
         ctx.fillText(dReady ? 'ТЕРРИТОРИЯ' : Math.floor(p.domainGauge) + '%', L.domain.x, L.domain.y + L.domain.r + 12);
       }

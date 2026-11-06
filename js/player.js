@@ -283,6 +283,15 @@
     }
     draw(ctx) {
       const flick = this.invuln > 0 && this.hurtT > 0 ? (Math.floor(this.t * 30) % 2 ? 0.45 : 1) : 1;
+      // cursed-energy aura ring at the feet
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.28 + Math.min(0.4, this.ce / 250);
+      ctx.strokeStyle = this.ch.color; ctx.lineWidth = 1.6;
+      ctx.setLineDash([9, 7]); ctx.lineDashOffset = -this.t * 40;
+      ctx.beginPath(); ctx.ellipse(this.x, this.y + 1, 24, 8.5, 0, 0, Math.PI * 2); ctx.stroke();
+      if (this.ce >= this.ultCost()) { ctx.globalAlpha = 0.35 + Math.sin(this.t * 6) * 0.15; ctx.setLineDash([]); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(this.x, this.y + 1, 30, 11, 0, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.restore();
       if (this.kit.drawUnder) this.kit.drawUnder(ctx, this.G, this);
       CA.Sprites.drawCharacter(ctx, this.id, this.x, this.y, {
         t: this.t, move: this.moving ? Math.min(1, this.moveMag) : 0, face: this.face, atk: this.atk, aimA: this.aimA,

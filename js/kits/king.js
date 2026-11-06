@@ -19,12 +19,8 @@
   }
 
   function fireExplosion(G, p, x, y, r, dmg) {
-    FX.disc(x, y, r * 1.3, 0.45, FIRE, 1);
-    FX.ring(x, y, 10, r * 1.1, 0.45, '#ffd08a', 7);
-    FX.shock(x, y, r * 1.3, FIRE, 0.55);
-    FX.burst(x, y, FIRE, 26, 380, 7, 0.7);
-    FX.embers(x, y, '#ffb04a', 14, r);
-    FX.smoke(x, y, '#2a1008', 8, 70, 26, 1.1);
+    FX.explosion(x, y, r, FIRE, { core: '#fff2c8', smoke: '#2a1008' });
+    FX.embers(x, y, '#ffb04a', 10, r);
     A.hitCircle(x, y, r, dmg, { src: 'kg_spear', knock: 300, burn: [dmg * 0.08, 3] });
     CA.Audio.play('boom'); G.shake(10);
   }

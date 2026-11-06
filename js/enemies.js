@@ -238,10 +238,7 @@
     explode(G, e) {
       const d = e.def;
       const R = d.boomR * (e.elite ? 1.4 : 1);
-      CA.FX.disc(e.x, e.y, R * 1.2, 0.35, '#ff7a1a', 0.9);
-      CA.FX.ring(e.x, e.y, 10, R, 0.35, '#ffb04a', 5);
-      CA.FX.burst(e.x, e.y, '#ff8a2a', 18, 260, 6, 0.6);
-      CA.FX.smoke(e.x, e.y, '#3a2010', 6, 60, 18, 0.9);
+      CA.FX.explosion(e.x, e.y, R, '#ff7a1a', { smoke: '#3a2010' });
       CA.Audio.play('boom', 0.7);
       G.shake(5);
       if (!G.enemyNoAttack) G.hurtCircle(e.x, e.y, R, d.boomDmg * G.dmgScale * (e.elite ? 1.5 : 1));

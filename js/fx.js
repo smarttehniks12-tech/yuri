@@ -186,6 +186,65 @@
       if (this.texts.length >= this.maxTexts) this.texts.shift();
       this.texts.push({ x: x + (Math.random() - 0.5) * 10, y, str, color, size: size || 14, life: crit ? 0.9 : 0.6, max: crit ? 0.9 : 0.6, crit: !!crit });
     },
+    // ---------- composite effects ----------
+    // anamorphic lens flare streak (big hits, crits, explosions)
+    flare(x, y, color, size, life) {
+      return this.custom(life || 0.25, (ctx, f, k) => {
+        ctx.globalCompositeOperation = 'lighter';
+        const w = size * (1.4 - k * 0.4), h = size * 0.09 * k + 1;
+        ctx.globalAlpha = k;
+        ctx.drawImage(getGlow(color), x - w, y - h, w * 2, h * 2);
+        ctx.globalAlpha = k * 0.9;
+        ctx.drawImage(getGlow('#ffffff'), x - w * 0.45, y - h * 0.6, w * 0.9, h * 1.2);
+        ctx.globalAlpha = k * 0.5;
+        ctx.drawImage(getGlow(color), x - h * 2, y - w * 0.35, h * 4, w * 0.7);
+      });
+    },
+    // small 4-point impact star on hit
+    impact(x, y, color, size) {
+      if (this.fx.length > 260) return;
+      const a = Math.random() * Math.PI;
+      this.custom(0.12, (ctx, f, k) => {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.translate(x, y); ctx.rotate(a);
+        const s = size * (1.3 - k * 0.5);
+        ctx.globalAlpha = k;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.moveTo(-s, 0); ctx.lineTo(0, -s * 0.16); ctx.lineTo(s, 0); ctx.lineTo(0, s * 0.16); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0, -s * 0.6); ctx.lineTo(s * 0.12, 0); ctx.lineTo(0, s * 0.6); ctx.lineTo(-s * 0.12, 0); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = k * 0.7;
+        ctx.drawImage(getGlow(color), -s * 0.7, -s * 0.7, s * 1.4, s * 1.4);
+      });
+    },
+    // layered anime explosion: flash, fireball, ring, ground shock, sparks, debris, smoke, embers, flare
+    explosion(x, y, r, color, opts) {
+      opts = opts || {};
+      const hot = opts.core || '#fff2c8';
+      this.disc(x, y, r * 0.9, 0.12, '#ffffff', 1);
+      this.custom(0.55, (ctx, f, k) => {
+        const t = 1 - k, rr = r * (0.35 + 0.85 * Math.pow(t, 0.4));
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = Math.min(1, k * 1.6);
+        ctx.drawImage(getGlow(color), x - rr * 1.3, y - rr * 1.3, rr * 2.6, rr * 2.6);
+        ctx.globalAlpha = Math.min(1, k * 2) * 0.9;
+        ctx.drawImage(getGlow(hot), x - rr * 0.6, y - rr * 0.6, rr * 1.2, rr * 1.2);
+      });
+      this.ring(x, y, r * 0.2, r * 1.15, 0.4, hot, 5);
+      this.ring(x, y, r * 0.1, r * 0.8, 0.3, color, 9);
+      this.shock(x, y, r * 1.35, color, 0.55);
+      this.sparks(x, y, hot, 16, r * 6);
+      this.burst(x, y, color, 18, r * 4, Math.max(4, r * 0.07), 0.7);
+      if (!opts.noDebris) this.shards(x, y, opts.debris || '#2a2030', 8, r * 3.2);
+      this.smoke(x, y, opts.smoke || '#1a1018', 6, r * 0.7, r * 0.3, 1.1);
+      this.embers(x, y, color, 8, r);
+      this.flare(x, y, color, r * 1.6, 0.3);
+      if (opts.decal !== false) this.decal(x, y, r * 0.7, '#0a0408', 5);
+    },
+    // soul wisps rising from a dead spirit
+    wisps(x, y, color, n) {
+      n = Math.max(1, Math.round(n * this.mult));
+      for (let i = 0; i < n; i++) this.p(x + (Math.random() - 0.5) * 10, y, (Math.random() - 0.5) * 30, -60 - Math.random() * 60, 0.7 + Math.random() * 0.5, 3 + Math.random() * 3, color, 5, 0.8);
+    },
     label(x, y, str, color, size, life) { // always-shown status text
       if (this.texts.length >= this.maxTexts) this.texts.shift();
       this.texts.push({ x, y, str, color, size: size || 16, life: life || 1.2, max: life || 1.2, crit: true, label: true });
@@ -199,6 +258,7 @@
         if (p.life <= 0) { P[i] = P[P.length - 1]; P.pop(); this.partFree.push(p); continue; }
         const dr = Math.max(0, 1 - p.drag * dt);
         p.vx *= dr; p.vy = p.vy * dr + p.grav * dt;
+        if (p.type === 5) p.vx += Math.sin(p.life * 9 + p.rot) * 120 * dt;
         p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
       }
       for (const L of [this.fx, this.under]) {
@@ -250,7 +310,7 @@
           ctx.strokeStyle = p.color; ctx.lineWidth = p.size * 0.6 * k + 0.5;
           ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04); ctx.stroke();
         } else {
-          const s = p.size * (p.type === 4 ? 1.6 : 2.2) * (0.5 + k * 0.5);
+          const s = p.size * (p.type === 4 ? 1.6 : p.type === 5 ? 2.6 : 2.2) * (p.type === 5 ? 0.3 + Math.sin(k * Math.PI) * 0.9 : 0.5 + k * 0.5);
           ctx.drawImage(getGlow(p.color), p.x - s, p.y - s, s * 2, s * 2);
         }
       }

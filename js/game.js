@@ -51,12 +51,10 @@
         const cs = getComputedStyle(probe);
         this.safe = { t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0, r: parseFloat(cs.paddingRight) || 0 };
       }
-      this.cam.base = U.clamp(Math.min(W, H * 0.6) / 410, 0.78, 1.5);
+      this.cam.base = U.clamp(Math.min(W, H) / 410, 0.78, 1.5);
       FX.setQuality(q);
       this.enemyCap = q === 'low' ? 130 : q === 'medium' ? 180 : 230;
       CA.HUD.layout(this);
-      // vertical-only game: rotating a phone to landscape mid-fight pauses it (overlay asks to rotate back)
-      if (W > H && window.matchMedia && window.matchMedia('(pointer: coarse)').matches && this.state === 'play') this.pause();
     },
 
     // ================= RUN LIFECYCLE =================
@@ -197,8 +195,12 @@
           this.update(dt);
         }
         this.realUpdate(rdt);
+        this.draw();
+        this._drawnState = 'play';
+      } else if (this._drawnState !== this.state) { // static overlay states: draw once, save battery
+        this.draw();
+        this._drawnState = this.state;
       }
-      this.draw();
     },
     adaptQuality() {
       // dynamic particle budget when the device struggles
@@ -228,7 +230,7 @@
       if (this.frame % 30 === 0) this.updateScaling();
       this.saveT -= dt;
       if (this.saveT <= 0) { this.saveT = 10; this.saveSnapshot(); }
-      this.enemySlowMul = 1; this.enemyNoAttack = false;
+      this.enemySlowMul = 1; this.enemyNoAttack = false; this.impactBudget = 10;
       if (this.ultActive > 0) this.ultActive = Math.max(0, this.ultActive - dt);
       // timers
       for (let i = this.timers.length - 1; i >= 0; i--) {
@@ -258,7 +260,7 @@
       const z = this.cam.base * (1 + this.cam.punch);
       this.cam.zoom = z;
       const vh = this.H / z;
-      const tx = p.x, ty = p.y + vh * 0.08;
+      const tx = p.x, ty = p.y + vh * (this.W > this.H ? 0.04 : 0.08);
       const k = Math.min(1, dt * 8);
       this.cam.x += (tx - this.cam.x) * k; this.cam.y += (ty - this.cam.y) * k;
       CA.Locations.updateAmbient(dt, this.view);
@@ -347,6 +349,8 @@
       this.slowmo(0.25, 1.4);
       this.flash('#ffffff', 0.7); this.shake(24);
       FX.disc(e.x, e.y, 260, 1.0, def.color, 1);
+      FX.explosion(e.x, e.y, 180, def.color, { debris: '#2a2030' });
+      for (let i = 0; i < 4; i++) this.later(0.15 + i * 0.18, () => FX.explosion(e.x + U.rand(-90, 90), e.y + U.rand(-70, 70), U.rand(60, 110), def.color));
       FX.ring(e.x, e.y, 20, 500, 1.2, def.color, 12);
       FX.burst(e.x, e.y, def.color, 70, 500, 8, 1.4);
       FX.shards(e.x, e.y, '#2a2030', 30, 400);
@@ -486,7 +490,8 @@
       if (!opt.noCe && e.bossId) p.gainCe(dmg / e.maxHp * 220);
       for (const h of p.hooks.hit) h(e, dmg, opt);
       if (!opt.silent) CA.Audio.play(crit ? 'crit' : 'hit', 0.6);
-      if (crit && Math.random() < 0.5) FX.sparks(e.x, e.y, '#ffe08a', 4, 240);
+      if (!opt.silent && !opt.small && this.impactBudget > 0) { this.impactBudget--; FX.impact(e.x + U.rand(-4, 4), e.y - e.r * 0.3, crit ? '#ffd84a' : (p.ch.color), crit ? 30 : 16 + Math.min(14, dmg * 0.05)); }
+      if (crit) { FX.sparks(e.x, e.y, '#ffe08a', 5, 260); if (dmg > 60 && this.impactBudget > 0) FX.flare(e.x, e.y - e.r * 0.3, '#ffd84a', 40 + Math.min(60, dmg * 0.1), 0.2); }
       if (e.hp <= 0) this.killEnemy(e);
       return dmg;
     },
@@ -513,6 +518,8 @@
       p.gainCe(e.elite ? 8 : d.miniboss ? 25 : 0.65);
       if (!silent && !e.bossId) {
         FX.burst(e.x, e.y, d.col || '#a080c0', e.elite ? 18 : 7, 160, e.r * 0.35, 0.5);
+        FX.wisps(e.x, e.y - e.r * 0.3, e.elite ? '#ffc83a' : '#b48aff', e.elite ? 6 : e.r > 18 ? 3 : 1);
+        if (e.elite || d.miniboss) FX.explosion(e.x, e.y, e.r * 2.4, e.elite ? '#ffc83a' : '#ff7a2a', { decal: true });
         if (Math.random() < 0.35) FX.smoke(e.x, e.y, '#1a1020', 2, 30, e.r, 0.6);
         FX.decal(e.x, e.y + e.r * 0.4, e.r * 1.1, '#140a18', 3);
         CA.Audio.play('death', 0.5);
@@ -604,7 +611,7 @@
     ultCinematic(p, u) {
       const L = p.lv[u.id] || 1;
       this.ultActive = u.dur ? u.dur(L) : 3;
-      this.ultFx = { t: 0, dur: 1.1, name: u.name, kanji: u.kanji, color: p.ch.color };
+      this.ultFx = { t: 0, dur: 1.1, name: u.name, icon: u.icon || u.id, color: p.ch.color };
       this.slowmo(0.3, 0.5);
       this.cam.punch = 0.22;
       this.flash(p.ch.color, 0.35);
@@ -775,9 +782,7 @@
         ctx.save();
         ctx.globalAlpha = a;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.font = '900 ' + Math.round(W * 0.22) + 'px "Hiragino Mincho ProN", "Yu Mincho", serif';
-        ctx.fillStyle = U.hexA(u.color, 0.3);
-        ctx.fillText(u.kanji, W / 2, H * 0.3);
+        CA.Icons.draw(ctx, u.icon, W / 2, H * 0.3, Math.min(W, H) * 0.34, u.color, { fill: U.hexA(u.color, 0.25), alpha: 0.55 });
         ctx.font = '900 italic ' + Math.round(Math.min(34, W * 0.08)) + 'px -apple-system, "Helvetica Neue", Arial';
         ctx.lineWidth = 5; ctx.strokeStyle = '#000';
         const tx = W / 2 + (1 - Math.min(1, k * 4)) * 80;
@@ -807,15 +812,14 @@
         ctx.font = '700 ' + Math.round(Math.min(15, W * 0.035)) + 'px -apple-system, Arial';
         ctx.fillStyle = '#ffffff';
         ctx.fillText('Р А С Ш И Р Е Н И Е   Т Е Р Р И Т О Р И И', W / 2, H * 0.36);
-        ctx.font = '900 ' + Math.round(W * 0.2) + 'px "Hiragino Mincho ProN", "Yu Mincho", serif';
-        ctx.fillStyle = f.def.color;
-        ctx.fillText(f.def.kanji, W / 2, H * 0.46);
+        CA.Icons.draw(ctx, 'domain', W / 2, H * 0.46, Math.min(W, H) * 0.2, f.def.color, { fill: U.mixHex(f.def.color, '#ffffff', 0.4) });
         ctx.font = '900 italic ' + Math.round(Math.min(30, W * 0.07)) + 'px -apple-system, Arial';
         ctx.fillStyle = '#ffffff';
         ctx.fillText(f.def.name.toUpperCase(), W / 2, H * 0.57);
+        ctx.font = '600 ' + Math.round(Math.min(13, W * 0.03)) + 'px -apple-system, Arial'; ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillText(f.def.en || '', W / 2, H * 0.6);
         ctx.font = '600 ' + Math.round(Math.min(15, W * 0.035)) + 'px -apple-system, Arial';
         ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.fillText(f.def.ru, W / 2, H * 0.61);
+        ctx.fillText(f.def.desc || '', W / 2, H * 0.64);
         ctx.globalAlpha = 1;
       }
       if (this.flashA > 0) { ctx.globalAlpha = Math.min(0.8, this.flashA); ctx.fillStyle = this.flashC; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }

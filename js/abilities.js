@@ -121,7 +121,7 @@
       p.onHit = o.onHit || null; p.onEnd = o.onEnd || null; p.draw = o.draw || null; p.update = o.update || null;
       p.opt = o.opt || null; p.trail = o.trail == null ? 0.5 : o.trail; p.hits = p.hits || []; p.hits.length = 0;
       p.size = o.size || p.r * 2.6; p.t = 0; p.kind = o.kind || ''; p.data = o.data || null; p.dead = false; p.rehit = o.rehit || 0; p.hitT = 0;
-      p.noHit = !!o.noHit;
+      p.noHit = !!o.noHit; p.tp = p.tp || []; p.tp.length = 0;
       G.projs.push(p);
       return p;
     },
@@ -142,6 +142,7 @@
           }
         }
         p.x += p.vx * dt; p.y += p.vy * dt;
+        if (!p.draw) { const tp = p.tp; tp.push(p.x, p.y); if (tp.length > 16) tp.splice(0, 2); }
         if (p.trail && Math.random() < p.trail) CA.FX.p(p.x, p.y, -p.vx * 0.05 + U.rand(-15, 15), -p.vy * 0.05 + U.rand(-15, 15), 0.3, p.r * 0.7, p.color, 0, 3);
         if (!p.noHit && !p.dead) {
           if (p.hitT > 0) p.hitT -= dt;
@@ -180,6 +181,16 @@
         if (p.draw) { ctx.save(); p.draw(ctx, p); ctx.restore(); continue; }
         ctx.globalCompositeOperation = 'lighter';
         const s = p.size;
+        const tp = p.tp;
+        if (tp && tp.length >= 6) { // tapered ribbon trail
+          ctx.lineCap = 'round'; ctx.strokeStyle = p.color;
+          for (let i = 2; i < tp.length; i += 2) {
+            const k = i / tp.length;
+            ctx.globalAlpha = k * 0.55; ctx.lineWidth = p.r * 1.6 * k;
+            ctx.beginPath(); ctx.moveTo(tp[i - 2], tp[i - 1]); ctx.lineTo(tp[i], tp[i + 1]); ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
         ctx.drawImage(CA.FX.getGlow(p.color), p.x - s, p.y - s, s * 2, s * 2);
         ctx.globalAlpha = 0.9;
         ctx.drawImage(CA.FX.getGlow(p.core), p.x - s * 0.35, p.y - s * 0.35, s * 0.7, s * 0.7);
@@ -276,7 +287,7 @@
       for (const c of kit.combos) {
         if (p.combos[c.id]) continue;
         if ((lv[c.a] || 0) >= c.al && (lv[c.b] || 0) >= c.bl) {
-          pool.push({ w: 120, card: { kind: 'combo', id: c.id, rarity: 'mythic', title: c.name, kanji: c.kanji, desc: c.desc, tag: 'КОМБИНАЦИЯ', apply: () => { p.combos[c.id] = true; p.onCombo(c); } } });
+          pool.push({ w: 120, card: { kind: 'combo', id: c.id, rarity: 'mythic', title: c.name, icon: c.icon || c.id, desc: c.desc, tag: 'КОМБИНАЦИЯ', apply: () => { p.combos[c.id] = true; p.onCombo(c); } } });
         }
       }
       const techs = [kit.basic, kit.passive].concat(kit.skills).concat([kit.ult]);
@@ -287,7 +298,7 @@
         const rar = isNew ? 'rare' : LV_RARITY[cur + 1];
         const w = isNew ? 22 : (s === kit.ult ? 8 : 14);
         pool.push({ w, card: {
-          kind: 'tech', id: s.id, rarity: rar, title: s.name, kanji: s.kanji,
+          kind: 'tech', id: s.id, rarity: rar, title: s.name, icon: s.icon || s.id,
           desc: s.levels[cur], tag: isNew ? 'НОВАЯ ТЕХНИКА' : 'УР. ' + cur + ' → ' + (cur + 1), lvl: cur + 1,
           apply: () => { p.learn(s.id); },
         } });
@@ -298,7 +309,7 @@
       if (dl < 5 && (dl > 0 || p.level >= 8)) {
         pool.push({ w: dl === 0 ? 30 : 7, card: {
           kind: 'tech', id: dom.id, rarity: dl === 0 ? 'legendary' : LV_RARITY[dl + 1] === 'common' ? 'epic' : 'legendary',
-          title: dom.name, kanji: dom.kanji, desc: dom.levels[dl], tag: dl === 0 ? 'ПРОБУЖДЕНИЕ ТЕРРИТОРИИ' : 'УР. ' + dl + ' → ' + (dl + 1), lvl: dl + 1,
+          title: dom.name, icon: 'domain', desc: dom.levels[dl], tag: dl === 0 ? 'ПРОБУЖДЕНИЕ ТЕРРИТОРИИ' : 'УР. ' + dl + ' → ' + (dl + 1), lvl: dl + 1,
           apply: () => { p.learn(dom.id); },
         } });
       }
@@ -307,7 +318,7 @@
       for (const st of this.STATS) {
         const rar = this.rollRarity(luck);
         const m = RARITY[rar].mag;
-        pool.push({ w: 9, card: { kind: 'stat', id: st.id, rarity: rar, title: st.ru, kanji: st.kanji, desc: st.desc(m), tag: 'УСИЛЕНИЕ', apply: () => st.apply(p, m) } });
+        pool.push({ w: 9, card: { kind: 'stat', id: st.id, rarity: rar, title: st.ru, icon: st.id, desc: st.desc(m), tag: 'УСИЛЕНИЕ', apply: () => st.apply(p, m) } });
       }
       // pick n distinct
       const out = [];
@@ -324,7 +335,7 @@
         out.push(pick.card);
       }
       if (!out.length) {
-        out.push({ kind: 'stat', id: 'feast', rarity: 'epic', title: 'Проклятый пир', kanji: '宴', desc: 'Полное лечение и +40 осколков', tag: 'НАГРАДА', apply: () => { p.heal(p.maxHp); this.G.run.shardsBonus += 40; } });
+        out.push({ kind: 'stat', id: 'feast', rarity: 'epic', title: 'Проклятый пир', icon: 'star', desc: 'Полное лечение и +40 осколков', tag: 'НАГРАДА', apply: () => { p.heal(p.maxHp); this.G.run.shardsBonus += 40; } });
       }
       return out;
     },

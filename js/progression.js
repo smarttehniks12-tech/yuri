@@ -138,7 +138,7 @@
     },
     rewText(r) {
       const p = [];
-      if (r.shards) p.push(r.shards + ' ◆');
+      if (r.shards) p.push(r.shards + ' осколков');
       if (r.seals) p.push(r.seals + ' печ.');
       if (r.coffers) p.push(r.coffers + ' сунд.');
       if (r.art) { const a = CA.Artifacts.get(r.art); p.push('артефакт «' + (a ? a.ru : r.art) + '»'); }

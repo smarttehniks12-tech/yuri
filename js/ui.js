@@ -47,7 +47,7 @@
     },
     currencyBar() {
       const d = CA.Store.data;
-      return '<div class="cur"><span class="c-sh" title="Осколки">◆ ' + U.fmtNum(d.shards) + '</span><span class="c-se" title="Печати">封 ' + d.seals + '</span><span class="c-ch" title="Сундуки">箱 ' + d.chests + '</span></div>';
+      return '<div class="cur"><span class="c-sh" title="Осколки">' + CA.Icons.img('gem', '#c8a8ff') + U.fmtNum(d.shards) + '</span><span class="c-se" title="Печати">' + CA.Icons.img('seal', '#ff8aa8') + d.seals + '</span><span class="c-ch" title="Сундуки">' + CA.Icons.img('chest', '#ffd27a') + d.chests + '</span></div>';
     },
     open(html, cls) {
       this.root.innerHTML = '<div class="screen ' + (cls || '') + '">' + html + '</div>';
@@ -72,9 +72,9 @@
       this.screen = 'menu';
       this.open(
         '<div class="menu-top">' + this.currencyBar() +
-          '<div class="mt-btns"><button class="icon-btn' + (dailyReady ? ' dot' : '') + '" data-act="daily">日<small>Задания</small></button>' +
-          '<button class="icon-btn' + (d.chests > 0 ? ' dot' : '') + '" data-act="coffer">箱<small>Сундук ' + d.chests + '</small></button></div></div>' +
-        '<div class="logo"><div class="logo-k">呪</div><h1>CURSED ARENA</h1><div class="logo-sub">AWAKENING</div></div>' +
+          '<div class="mt-btns"><button class="icon-btn' + (dailyReady ? ' dot' : '') + '" data-act="daily">' + CA.Icons.img('calendar', '#ff8aa8') + '<small>Задания</small></button>' +
+          '<button class="icon-btn' + (d.chests > 0 ? ' dot' : '') + '" data-act="coffer">' + CA.Icons.img('chest', '#ffd27a') + '<small>Сундук ' + d.chests + '</small></button></div></div>' +
+        '<div class="logo"><div class="logo-k">' + CA.Icons.img('vortex', '#b06aff') + '</div><h1>CURSED ARENA</h1><div class="logo-sub">AWAKENING</div></div>' +
         '<div class="menu-char" style="--c:' + ch.color + '"><div class="mc-name">' + ch.name + '</div><div class="mc-arch">' + ch.archetype + ' · ' + ch.ru + '</div></div>' +
         '<div class="menu-btns">' +
           (snap ? '<button class="mbtn cont" data-act="continue"><b>▶ ПРОДОЛЖИТЬ ЗАБЕГ</b><small>' + esc(CA.Chars.get(snap.char).name) + ' · ' + U.fmtTime(snap.t) + ' · ур. ' + snap.level + '</small></button>' : '') +
@@ -100,34 +100,31 @@
       gr.addColorStop(0, '#07050d'); gr.addColorStop(0.6, U.mixHex('#07050d', ch.color, 0.12)); gr.addColorStop(1, '#030206');
       c.fillStyle = gr; c.fillRect(0, 0, W, H);
       const t = this.bgT;
-      // giant kanji
-      c.save();
-      c.globalAlpha = 0.07; c.fillStyle = ch.color;
-      c.font = '900 ' + Math.round(H * 0.5) + 'px "Hiragino Mincho ProN", "Yu Mincho", serif';
-      c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(ch.kanji, W / 2 + Math.sin(t * 0.3) * 10, H * 0.5);
-      c.restore();
+      // giant element emblem
+      CA.Icons.draw(c, 'char_' + id, W / 2 + Math.sin(t * 0.3) * 10, H * 0.5, Math.min(W, H) * 0.85, U.hexA(ch.color, 0.09), { fill: U.hexA(ch.color, 0.04) });
       // energy swirl
       c.globalCompositeOperation = 'lighter';
       for (let i = 0; i < 40; i++) {
         const a = i * 2.4 + t * (0.2 + (i % 5) * 0.05), r = 60 + (i * 37 % 200) + Math.sin(t + i) * 10;
-        const x = W / 2 + Math.cos(a) * r, y = H * 0.56 + Math.sin(a) * r * 0.5 - ((t * 30 + i * 20) % 200) * 0.3;
+        const x = (W > H ? W * 0.25 : W / 2) + Math.cos(a) * r, y = H * 0.56 + Math.sin(a) * r * 0.5 - ((t * 30 + i * 20) % 200) * 0.3;
         c.globalAlpha = 0.25 + 0.2 * Math.sin(t * 2 + i);
         c.drawImage(CA.FX.getGlow(ch.color), x - 6, y - 6, 12, 12);
       }
       c.globalAlpha = 0.5;
-      c.drawImage(CA.FX.getSoft(ch.color), W / 2 - 160, H * 0.62 - 120, 320, 240);
+      c.drawImage(CA.FX.getSoft(ch.color), (W > H ? W * 0.25 : W / 2) - 160, H * 0.62 - 120, 320, 240);
       c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
       // silhouette character
-      const scale = Math.min(W / 120, H / 150) * (this.screen === 'chars' ? 0.75 : 0.9);
-      const cy = this.screen === 'chars' ? H * 0.42 : H * 0.6;
+      const land = W > H;
+      const scale = land ? H / 130 * (this.screen === 'chars' ? 0.85 : 0.75) : Math.min(W / 120, H / 150) * (this.screen === 'chars' ? 0.75 : 0.9);
+      const cy = land ? H * (this.screen === 'chars' ? 0.92 : 0.82) : this.screen === 'chars' ? H * 0.42 : H * 0.6;
+      const cx = land ? W * (this.screen === 'chars' ? 0.2 : 0.25) : W / 2;
       c.save();
       if (this.screen !== 'menu' && this.screen !== 'chars' && this.screen !== 'results') c.globalAlpha = 0.22;
-      CA.Sprites.drawCharacter(c, id, W / 2, cy, { t, move: 0, face: 1, scale, cast: 0.4 + Math.sin(t * 1.5) * 0.3, eyeGlow: 0.8 });
+      CA.Sprites.drawCharacter(c, id, cx, cy, { t, move: 0, face: 1, scale, cast: 0.4 + Math.sin(t * 1.5) * 0.3, eyeGlow: 0.8 });
       c.restore();
       // ground glow
       c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.35;
-      c.drawImage(CA.FX.getSoft(ch.color), W / 2 - 140, cy - 30, 280, 60);
+      c.drawImage(CA.FX.getSoft(ch.color), cx - 140, cy - 30, 280, 60);
       c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     },
 
@@ -239,7 +236,7 @@
       for (const r of CA.Chars.ROSTER) {
         const u = CA.Chars.isUnlocked(r.id);
         const secret = !u && r.unlock.type === 'secret' && d.stats.kills < 500;
-        tabs += '<button class="ctab' + (r.id === id ? ' on' : '') + (u ? '' : ' lk') + '" style="--c:' + r.color + '" data-act="viewchar" data-id="' + r.id + '"><i>' + (secret ? '?' : r.kanji) + '</i><small>' + (secret ? '???' : r.archetype.split(' ')[0]) + '</small></button>';
+        tabs += '<button class="ctab' + (r.id === id ? ' on' : '') + (u ? '' : ' lk') + '" style="--c:' + r.color + '" data-act="viewchar" data-id="' + r.id + '"><i>' + (secret ? '?' : CA.Icons.img('char_' + r.id, r.color)) + '</i><small>' + (secret ? '???' : r.archetype.split(' ')[0]) + '</small></button>';
       }
       tabs += '</div>';
       const secret = !un && c.unlock.type === 'secret' && d.stats.kills < 500;
@@ -254,7 +251,7 @@
         html += '<p class="style">' + c.style + '</p>';
         html += '<div class="abl">';
         const list = [['АТАКА', kit.basic], ['ПАССИВ', kit.passive]].concat(kit.skills.map((s, i) => ['ТЕХНИКА ' + (i + 1), s])).concat([['УЛЬТИМЕЙТ', kit.ult], ['ТЕРРИТОРИЯ', kit.domain]]);
-        for (const [tag, s] of list) html += '<div class="ab"><i>' + s.kanji + '</i><div><b>' + s.name + '</b> <em>' + tag + '</em><p>' + s.desc + '</p></div></div>';
+        for (const [tag, s] of list) html += '<div class="ab"><i>' + CA.Icons.img(s.icon || 'domain', c.color) + '</i><div><b>' + s.name + '</b> <em>' + tag + '</em>' + (s.en ? '<small class="en">' + s.en + '</small>' : '') + '<p>' + s.desc + '</p></div></div>';
         html += '</div>';
         if (un) html += d.selectedChar === id ? '<button class="mbtn sel" disabled><b>ВЫБРАН</b></button>' : '<button class="mbtn play" data-act="selchar" data-id="' + id + '"><b>ВЫБРАТЬ</b></button>';
         else if (c.unlock.type === 'shards') html += '<button class="mbtn play" data-act="buychar" data-id="' + id + '"><b>ОТКРЫТЬ · ' + c.unlock.cost + ' ◆</b></button>';
@@ -270,7 +267,7 @@
       this.screen = 'techs';
       const disc = CA.Store.data.discovered;
       let tabs = '<div class="ctabs">';
-      for (const r of CA.Chars.ROSTER) tabs += '<button class="ctab' + (r.id === id ? ' on' : '') + '" style="--c:' + r.color + '" data-act="techs" data-id="' + r.id + '"><i>' + r.kanji + '</i><small>' + r.archetype.split(' ')[0] + '</small></button>';
+      for (const r of CA.Chars.ROSTER) tabs += '<button class="ctab' + (r.id === id ? ' on' : '') + '" style="--c:' + r.color + '" data-act="techs" data-id="' + r.id + '"><i>' + CA.Icons.img('char_' + r.id, r.color) + '</i><small>' + r.archetype.split(' ')[0] + '</small></button>';
       tabs += '</div>';
       const kit = CA.Kits[id], c = CA.Chars.get(id);
       const all = CA.A.allTechs(kit);
@@ -280,7 +277,7 @@
       const rc = ['', 'common', 'common', 'rare', 'epic', 'legendary'];
       for (const s of all) {
         const f = disc.tech[s.id];
-        html += '<div class="tech' + (f ? '' : ' unk') + '"><div class="th"><i>' + (f ? s.kanji : '?') + '</i><div><b>' + (f ? s.name : '???') + '</b><p>' + (f ? s.desc : 'Изучите технику в забеге, чтобы открыть её описание.') + '</p></div></div>';
+        html += '<div class="tech' + (f ? '' : ' unk') + '"><div class="th"><i>' + (f ? CA.Icons.img(s.icon || 'domain', c.color) : '?') + '</i><div><b>' + (f ? s.name : '???') + '</b>' + (f && s.en ? '<small class="en">' + s.en + '</small>' : '') + '<p>' + (f ? s.desc : 'Изучите технику в забеге, чтобы открыть её описание.') + '</p></div></div>';
         if (f) {
           html += '<ol>';
           s.levels.forEach((t, i) => { html += '<li class="r-' + rc[i + 1] + '"><span>УР.' + (i + 1) + ' · ' + rn[i + 1] + '</span>' + t + '</li>'; });
@@ -292,7 +289,7 @@
       for (const cb of kit.combos) {
         const f = disc.combos[cb.id];
         const a = all.find((s) => s.id === cb.a), b = all.find((s) => s.id === cb.b);
-        html += '<div class="tech combo' + (f ? '' : ' unk') + '"><div class="th"><i>' + (f ? cb.kanji : '?') + '</i><div><b>' + (f ? cb.name : '??? Комбинация') + '</b><p>' + (f ? cb.desc : 'Подсказка: ' + a.name + ' (ур.' + cb.al + ') + ' + b.name + ' (ур.' + cb.bl + ')') + '</p></div></div></div>';
+        html += '<div class="tech combo' + (f ? '' : ' unk') + '"><div class="th"><i>' + (f ? CA.Icons.img(cb.icon, '#ff3a6a') : '?') + '</i><div><b>' + (f ? cb.name : '??? Комбинация') + '</b>' + (f && cb.en ? '<small class="en">' + cb.en + '</small>' : '') + '<p>' + (f ? cb.desc : 'Подсказка: ' + a.name + ' (ур.' + cb.al + ') + ' + b.name + ' (ур.' + cb.bl + ')') + '</p></div></div></div>';
       }
       html += '</div>';
       this.open(html);
@@ -305,11 +302,11 @@
       let html = this.header('УЛУЧШЕНИЯ', 'Постоянные бонусы для всех магов') + '<div class="upg">';
       for (const m of CA.Prog.META) {
         const l = CA.Prog.metaLevel(m.id), max = l >= m.max, cost = CA.Prog.metaCost(m);
-        html += '<div class="up"><i>' + m.kanji + '</i><div class="up-b"><b>' + m.ru + '</b><span>' + m.fmt(l * m.per) + (max ? '' : ' → ' + m.fmt((l + 1) * m.per)) + '</span>' +
+        html += '<div class="up"><i>' + CA.Icons.img(m.id, '#ffd27a') + '</i><div class="up-b"><b>' + m.ru + '</b><span>' + m.fmt(l * m.per) + (max ? '' : ' → ' + m.fmt((l + 1) * m.per)) + '</span>' +
           '<div class="pips">' + Array.from({ length: m.max }, (_, i) => '<i class="' + (i < l ? 'on' : '') + '"></i>').join('') + '</div></div>' +
           (max ? '<button class="buy max" disabled>MAX</button>' : '<button class="buy' + (d.shards >= cost ? '' : ' no') + '" data-act="buymeta" data-id="' + m.id + '">' + cost + ' ◆</button>') + '</div>';
       }
-      html += '</div><h3 class="sec">ЛАВКА ПЕЧАТЕЙ</h3><div class="upg"><div class="up"><i>箱</i><div class="up-b"><b>Проклятый сундук</b><span>Осколки, печати или новый артефакт</span></div><button class="buy' + (d.seals >= 1 ? '' : ' no') + '" data-act="buycoffer">1 封</button></div></div>';
+      html += '</div><h3 class="sec">ЛАВКА ПЕЧАТЕЙ</h3><div class="upg"><div class="up"><i>' + CA.Icons.img('chest', '#ffd27a') + '</i><div class="up-b"><b>Проклятый сундук</b><span>Осколки, печати или новый артефакт</span></div><button class="buy' + (d.seals >= 1 ? '' : ' no') + '" data-act="buycoffer">1 печать</button></div></div>';
       this.open(html);
     },
 
@@ -325,8 +322,8 @@
         html += '<div class="arts">';
         for (const a of CA.Artifacts.LIST) {
           const un = CA.Artifacts.isUnlocked(a.id), f = disc.artifacts[a.id];
-          html += '<div class="art r-' + a.rarity + (un ? '' : ' locked') + '"><i>' + (un ? a.kanji : '?') + '</i><div><b>' + (un ? a.ru : '???') + '</b><em style="color:' + R[a.rarity].color + '">' + R[a.rarity].ru + (f ? ' · найден' : '') + '</em><p>' + (un ? a.desc : 'Запечатан. Откройте в сундуках или за достижения.') + '</p>' +
-            (un ? '' : '<button class="buy small" data-act="unlockart" data-id="' + a.id + '">Распечатать · 3 封</button>') + '</div></div>';
+          html += '<div class="art r-' + a.rarity + (un ? '' : ' locked') + '"><i>' + (un ? CA.Icons.img(a.id, R[a.rarity].color) : '?') + '</i><div><b>' + (un ? a.ru : '???') + '</b><em style="color:' + R[a.rarity].color + '">' + R[a.rarity].ru + (f ? ' · найден' : '') + '</em><p>' + (un ? a.desc : 'Запечатан. Откройте в сундуках или за достижения.') + '</p>' +
+            (un ? '' : '<button class="buy small" data-act="unlockart" data-id="' + a.id + '">Распечатать · 3 печати</button>') + '</div></div>';
         }
         html += '</div>';
       } else if (tab === 'best') {
@@ -340,7 +337,7 @@
         html += '<div class="arts">';
         for (const k in CA.Bosses.DEFS) {
           const b = CA.Bosses.DEFS[k], f = disc.bosses[k];
-          html += '<div class="art bossc' + (f ? '' : ' locked') + '" style="--c:' + b.color + '"><i>' + (f ? '凶' : '?') + '</i><div><b>' + (f ? b.ru : '???') + '</b><em>' + (f ? b.name + ' · ' + b.title : '') + '</em><p>' + (f ? b.desc : 'Ещё не встречен.') + '</p><em>Побед: ' + (d.stats.bossKills[k] || 0) + '</em></div></div>';
+          html += '<div class="art bossc' + (f ? '' : ' locked') + '" style="--c:' + b.color + '"><i>' + (f ? CA.Icons.img('skull', b.color) : '?') + '</i><div><b>' + (f ? b.ru : '???') + '</b><em>' + (f ? b.name + ' · ' + b.title : '') + '</em><p>' + (f ? b.desc : 'Ещё не встречен.') + '</p><em>Побед: ' + (d.stats.bossKills[k] || 0) + '</em></div></div>';
         }
         html += '</div>';
       } else {
@@ -410,11 +407,11 @@
       dl.quests.forEach((q, i) => {
         const def = CA.Prog.questDef(q.id);
         const done = q.v >= q.n;
-        html += '<div class="ach' + (q.claimed ? ' got' : '') + '"><i>' + (q.claimed ? '✓' : '日') + '</i><div><b>' + def.ru(q.n) + '</b><div class="prog"><div style="width:' + Math.round(Math.min(1, q.v / q.n) * 100) + '%"></div><span>' + Math.floor(q.v) + ' / ' + q.n + '</span></div><em>Награда: ' + def.rew + ' ◆</em></div>' +
+        html += '<div class="ach' + (q.claimed ? ' got' : '') + '"><i>' + (q.claimed ? '✓' : CA.Icons.img('calendar', '#ff8aa8')) + '</i><div><b>' + def.ru(q.n) + '</b><div class="prog"><div style="width:' + Math.round(Math.min(1, q.v / q.n) * 100) + '%"></div><span>' + Math.floor(q.v) + ' / ' + q.n + '</span></div><em>Награда: ' + def.rew + ' ◆</em></div>' +
           (q.claimed ? '' : '<button class="buy' + (done ? '' : ' no') + '" ' + (done ? 'data-act="claimq" data-i="' + i + '"' : 'disabled') + '>Забрать</button>') + '</div>';
       });
       const all = dl.quests.every((q) => q.claimed);
-      html += '<div class="ach bonus' + (dl.bonusClaimed ? ' got' : '') + '"><i>賞</i><div><b>Бонус за все задания</b><em>Проклятый сундук + 1 печать</em></div>' + (dl.bonusClaimed ? '' : '<button class="buy' + (all ? '' : ' no') + '" ' + (all ? 'data-act="claimbonus"' : 'disabled') + '>Забрать</button>') + '</div>';
+      html += '<div class="ach bonus' + (dl.bonusClaimed ? ' got' : '') + '"><i>' + CA.Icons.img('chest', '#ffd27a') + '</i><div><b>Бонус за все задания</b><em>Проклятый сундук + 1 печать</em></div>' + (dl.bonusClaimed ? '' : '<button class="buy' + (all ? '' : ' no') + '" ' + (all ? 'data-act="claimbonus"' : 'disabled') + '>Забрать</button>') + '</div>';
       html += '</div>';
       this.open(html);
     },
@@ -424,7 +421,7 @@
       const d = CA.Store.data;
       this.screen = 'coffer';
       this.open(this.header('ПРОКЛЯТЫЕ СУНДУКИ', 'Сундуков: ' + d.chests) +
-        '<div class="coffer-wrap"><div class="coffer" id="cofferEl"><div class="lid"></div><div class="box"><span>呪</span></div></div><div id="cofferRes" class="coffer-res">' +
+        '<div class="coffer-wrap"><div class="coffer" id="cofferEl"><div class="lid"></div><div class="box"><span>' + CA.Icons.img('vortex', '#ffd27a') + '</span></div></div><div id="cofferRes" class="coffer-res">' +
         (d.chests > 0 ? 'Нажмите, чтобы открыть' : 'Сундуков нет. Их дают за победы, задания и достижения, а также в лавке печатей.') + '</div>' +
         (d.chests > 0 ? '<button class="mbtn play" data-act="opencoffer"><b>ОТКРЫТЬ</b></button>' : '') + '</div>');
     },
@@ -459,7 +456,7 @@
       let html = '<div class="lvl-t"><b>УРОВЕНЬ ' + (p.level - CA.Game.pendingLevels + 1) + '</b><small>Выберите технику или усиление</small></div><div class="cards">';
       this.cards.forEach((c, i) => {
         html += '<button class="card r-' + c.rarity + '" style="--rc:' + R[c.rarity].color + ';animation-delay:' + (i * 0.08) + 's" data-act="card" data-i="' + i + '">' +
-          '<div class="cr">' + R[c.rarity].name.toUpperCase() + '</div><i>' + c.kanji + '</i><div class="cb"><em>' + c.tag + '</em><b>' + esc(c.title) + '</b><p>' + esc(c.desc) + '</p></div></button>';
+          '<div class="cr">' + R[c.rarity].name.toUpperCase() + '</div><i>' + CA.Icons.img(c.icon, R[c.rarity].color) + '</i><div class="cb"><em>' + c.tag + '</em><b>' + esc(c.title) + '</b><p>' + esc(c.desc) + '</p></div></button>';
       });
       html += '</div>';
       if (p.rerolls > 0) html += '<button class="reroll" data-act="reroll">↻ Перебросить (' + p.rerolls + ')</button>';
@@ -477,6 +474,16 @@
       this.root.innerHTML = '';
       const p = G.player;
       CA.FX.ring(p.x, p.y - 20, 10, 120, 0.5, RAR()[c.rarity].color, 5);
+      const pc = RAR()[c.rarity].color;
+      CA.FX.custom(0.8, (ctx, f, k) => { // pillar of light
+        ctx.globalCompositeOperation = 'lighter';
+        const w = 26 * k + 4;
+        ctx.globalAlpha = k * 0.8;
+        ctx.drawImage(CA.FX.getGlow(pc), p.x - w, p.y - 260, w * 2, 280);
+        ctx.globalAlpha = k;
+        ctx.drawImage(CA.FX.getGlow('#ffffff'), p.x - w * 0.3, p.y - 220, w * 0.6, 230);
+      });
+      CA.FX.wisps(p.x, p.y, pc, 10);
       CA.FX.burst(p.x, p.y - 20, RAR()[c.rarity].color, 20, 220, 4, 0.6);
       G.state = 'play'; CA.Input.enabled = true; CA.Input.releaseAll();
       G.last = performance.now();
@@ -497,7 +504,7 @@
       this.arts = arts; this.chestReady = false;
       CA.Store.data.stats.chestsOpenedLive = (CA.Store.data.stats.chestsOpenedLive || 0) + 1;
       const R = RAR();
-      let html = '<div class="coffer-wrap ig"><div class="coffer shake" id="cofferEl"><div class="lid"></div><div class="box"><span>呪</span></div></div></div>';
+      let html = '<div class="coffer-wrap ig"><div class="coffer shake" id="cofferEl"><div class="lid"></div><div class="box"><span>' + CA.Icons.img('vortex', '#ffd27a') + '</span></div></div></div>';
       this.root.innerHTML = '<div class="overlay chest">' + html + '</div>';
       CA.Audio.play('roll');
       setTimeout(() => {
@@ -508,9 +515,9 @@
           this.chestReady = true;
           let h = '<div class="lvl-t"><b>СУНДУК ПРОКЛЯТИЙ</b><small>Выберите артефакт (' + p.artifacts.length + '/6)</small></div><div class="cards">';
           if (p.artifacts.length >= 6 || !this.arts.length) {
-            h += '<div class="card r-rare"><i>◆</i><div class="cb"><b>+20 осколков</b><p>' + (p.artifacts.length >= 6 ? 'Все слоты артефактов заняты.' : 'Все доступные артефакты уже у вас.') + '</p></div></div>';
+            h += '<div class="card r-rare"><i>' + CA.Icons.img('gem', '#4fb8ff') + '</i><div class="cb"><b>+20 осколков</b><p>' + (p.artifacts.length >= 6 ? 'Все слоты артефактов заняты.' : 'Все доступные артефакты уже у вас.') + '</p></div></div>';
           } else this.arts.forEach((a, i) => {
-            h += '<button class="card r-' + a.rarity + '" style="--rc:' + R[a.rarity].color + ';animation-delay:' + (i * 0.08) + 's" data-act="art" data-i="' + i + '"><div class="cr">' + R[a.rarity].name.toUpperCase() + '</div><i>' + a.kanji + '</i><div class="cb"><em>АРТЕФАКТ</em><b>' + a.ru + '</b><p>' + a.desc + '</p></div></button>';
+            h += '<button class="card r-' + a.rarity + '" style="--rc:' + R[a.rarity].color + ';animation-delay:' + (i * 0.08) + 's" data-act="art" data-i="' + i + '"><div class="cr">' + R[a.rarity].name.toUpperCase() + '</div><i>' + CA.Icons.img(a.id, R[a.rarity].color) + '</i><div class="cb"><em>АРТЕФАКТ</em><b>' + a.ru + '</b><p>' + a.desc + '</p></div></button>';
           });
           h += '</div><button class="reroll" data-act="artskip">' + (p.artifacts.length >= 6 || !this.arts.length ? 'Забрать осколки' : 'Пропустить (+25 ◆)') + '</button>';
           this.root.innerHTML = '<div class="overlay lvl">' + h + '</div>';
@@ -544,10 +551,10 @@
       for (const s of CA.A.allTechs(kit)) {
         const l = p.lv[s.id] || 0;
         if (!l) continue;
-        build += '<div class="bt"><i>' + s.kanji + '</i><b>' + s.name + '</b><span>' + '★'.repeat(l) + '☆'.repeat(5 - l) + '</span></div>';
+        build += '<div class="bt"><i>' + CA.Icons.img(s.icon || 'domain', p.ch.color) + '</i><b>' + s.name + '</b><span>' + '★'.repeat(l) + '☆'.repeat(5 - l) + '</span></div>';
       }
-      for (const c of kit.combos) if (p.combos[c.id]) build += '<div class="bt combo"><i>' + c.kanji + '</i><b>' + c.name + '</b><span>МИФ</span></div>';
-      let arts = p.artifacts.map((a) => '<div class="bt" style="--rc:' + R[a.rarity].color + '"><i style="color:' + R[a.rarity].color + '">' + a.kanji + '</i><b>' + a.ru + '</b></div>').join('') || '<p class="note">Нет артефактов</p>';
+      for (const c of kit.combos) if (p.combos[c.id]) build += '<div class="bt combo"><i>' + CA.Icons.img(c.icon, '#ff3a6a') + '</i><b>' + c.name + '</b><span>МИФ</span></div>';
+      let arts = p.artifacts.map((a) => '<div class="bt" style="--rc:' + R[a.rarity].color + '"><i>' + CA.Icons.img(a.id, R[a.rarity].color) + '</i><b>' + a.ru + '</b></div>').join('') || '<p class="note">Нет артефактов</p>';
       this.root.innerHTML = '<div class="overlay pause"><h2>ПАУЗА</h2><div class="pinfo">' + U.fmtTime(G.t) + ' · уровень ' + p.level + ' · ☠ ' + G.run.kills + '</div>' +
         '<div class="pcols"><div><h3 class="sec">ТЕХНИКИ</h3>' + build + '</div><div><h3 class="sec">АРТЕФАКТЫ</h3>' + arts + '</div></div>' +
         '<button class="mbtn play" data-act="resume"><b>ПРОДОЛЖИТЬ</b></button><button class="mbtn" data-act="pausesettings"><b>НАСТРОЙКИ</b></button><button class="mbtn danger" data-act="quit"><b>ПОКИНУТЬ ЗАБЕГ</b></button></div>';
@@ -560,11 +567,11 @@
       this.screen = 'results';
       CA.Game.state = 'menu';
       const ch = CA.Chars.get(run.char);
-      let html = '<div class="res ' + (victory ? 'win' : 'lose') + '"><div class="res-k">' + (victory ? '祓' : '死') + '</div><h1>' + (victory ? 'ИЗГНАНИЕ ЗАВЕРШЕНО' : 'ВЫ ПАЛИ') + '</h1><p>' + ch.name + ' · ' + CA.Locations.get(run.loc).ru + '</p>' +
+      let html = '<div class="res ' + (victory ? 'win' : 'lose') + '"><div class="res-k">' + CA.Icons.img(victory ? 'trophy' : 'skull', victory ? '#ffd27a' : '#ff3a4a') + '</div><h1>' + (victory ? 'ИЗГНАНИЕ ЗАВЕРШЕНО' : 'ВЫ ПАЛИ') + '</h1><p>' + ch.name + ' · ' + CA.Locations.get(run.loc).ru + '</p>' +
         '<div class="statsT">' +
         [['Время', U.fmtTime(run.time)], ['Уровень', run.level], ['Уничтожено', run.kills], ['Нанесено урона', U.fmtNum(run.dmg)], ['Сильнейший удар', Math.round(run.maxHit)], ['Боссов', run.bosses + run.mids], ['Сундуков', run.chests], ['Ультимейтов / Территорий', run.ults + ' / ' + run.domains]]
           .map(([a, b]) => '<div><span>' + a + '</span><b>' + b + '</b></div>').join('') + '</div>' +
-        '<div class="rew"><div>◆ +' + rew.shards + '</div>' + (rew.seals ? '<div>封 +' + rew.seals + '</div>' : '') + (rew.coffers ? '<div>箱 +' + rew.coffers + '</div>' : '') + '</div>';
+        '<div class="rew"><div>' + CA.Icons.img('gem', '#c8a8ff') + '+' + rew.shards + '</div>' + (rew.seals ? '<div>' + CA.Icons.img('seal', '#ff8aa8') + '+' + rew.seals + '</div>' : '') + (rew.coffers ? '<div>' + CA.Icons.img('chest', '#ffd27a') + '+' + rew.coffers + '</div>' : '') + '</div>';
       if (res.unlocked.length) html += '<div class="unl">' + res.unlocked.map((u) => '<div>🔓 ' + u + '</div>').join('') + '</div>';
       if (res.ach.length) html += '<div class="unl">' + res.ach.map((a) => '<div>🏆 ' + a.ru + ' — ' + CA.Prog.rewText(a.rew) + '</div>').join('') + '</div>';
       html += '<button class="mbtn play" data-act="again"><b>ЕЩЁ РАЗ</b></button><button class="mbtn" data-act="menu"><b>В МЕНЮ</b></button></div>';
@@ -576,7 +583,7 @@
     tutorial() {
       const d = document.createElement('div');
       d.className = 'tut';
-      d.innerHTML = '<div class="tut-in"><h3>КАК ИГРАТЬ</h3><p>👈 <b>Левая половина экрана</b> — джойстик (появляется под пальцем).</p><p>👉 <b>Большая кнопка</b> — обычная атака (работает и сама, удержание ускоряет).</p><p>🔹 <b>Кнопки вокруг</b> — техники. Новые открываются при повышении уровня.</p><p>⚡ <b>Верхняя кнопка</b> — ультимейт, когда шкала проклятой энергии полна.</p><p>域 <b>Территория</b> — появится после пробуждения (уровень 8+).</p><p>Собирайте фиолетовые кристаллы, чтобы расти. На 6:00 и 12:00 приходят боссы.</p><button class="mbtn play" data-act="tutok"><b>ПОНЯТНО</b></button></div>';
+      d.innerHTML = '<div class="tut-in"><h3>КАК ИГРАТЬ</h3><p>👈 <b>Левая половина экрана</b> — джойстик (появляется под пальцем).</p><p>👉 <b>Большая кнопка</b> — обычная атака (работает и сама, удержание ускоряет).</p><p>🔹 <b>Кнопки вокруг</b> — техники. Новые открываются при повышении уровня.</p><p>⚡ <b>Верхняя кнопка</b> — ультимейт, когда шкала проклятой энергии полна.</p><p>⛩ <b>Территория</b> — появится после пробуждения (уровень 8+).</p><p>Собирайте фиолетовые кристаллы, чтобы расти. На 6:00 и 12:00 приходят боссы.</p><button class="mbtn play" data-act="tutok"><b>ПОНЯТНО</b></button></div>';
       this.root.appendChild(d);
       CA.Game.state = 'pause';
       CA.Input.enabled = false;
