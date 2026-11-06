@@ -13,16 +13,9 @@
     CA.UI.menu();
 
     // unlock audio on first interaction (iOS requirement), then start generative music
-    const first = () => {
-      CA.Audio.unlock();
-      CA.Audio.startMusic();
-      window.removeEventListener('touchend', first);
-      window.removeEventListener('pointerup', first);
-      window.removeEventListener('keydown', first);
-    };
-    window.addEventListener('touchend', first, { passive: true });
-    window.addEventListener('pointerup', first, { passive: true });
-    window.addEventListener('keydown', first);
+    // every gesture re-checks the audio session (iOS home-screen apps can lose it after switching apps)
+    const gesture = () => { CA.Audio.unlock(); CA.Audio.startMusic(); };
+    for (const ev of ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown']) window.addEventListener(ev, gesture, { passive: true, capture: true });
 
     // app switching: pause + persist; resume audio on return
     document.addEventListener('visibilitychange', () => {

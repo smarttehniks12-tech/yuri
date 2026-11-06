@@ -1,5 +1,5 @@
 /* service-worker.js — offline-first cache for Cursed Arena: Awakening */
-const CACHE = 'cursed-arena-v1.1.0';
+const CACHE = 'cursed-arena-v1.2.0';
 const ASSETS = [
   './', './index.html', './style.css', './manifest.json',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png',

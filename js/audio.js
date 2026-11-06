@@ -24,9 +24,24 @@
 
     init() {
       if (this.ctx) return;
+      this.createContext();
+      if (!this.ctx) return;
+      this.ready = true;
+      this.loadSamples();
+    },
+    // iOS home-screen apps (standalone PWA) use a different audio session than Safari tabs:
+    // ask for a 'playback' session so the ringer/silent switch and standalone mode don't mute Web Audio.
+    setSession() {
+      try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) { /* older iOS */ }
+    },
+    createContext() {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
-      try { this.ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { try { this.ctx = new AC(); } catch (e2) { return; } }
+      this.setSession();
+      try { this.ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { try { this.ctx = new AC(); } catch (e2) { this.ctx = null; return; } }
+      this.buildGraph();
+    },
+    buildGraph() {
       const c = this.ctx;
       const comp = c.createDynamicsCompressor();
       comp.threshold.value = -10; comp.knee.value = 8; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.18;
@@ -44,9 +59,35 @@
       this.reverb.connect(rvOut); rvOut.connect(this.cats.music);
       // skills get a little space too
       this.skillVerb = c.createGain(); this.skillVerb.gain.value = 0.18; this.skillVerb.connect(this.reverb);
+      this.voices = {};
       this.applySettings();
-      this.ready = true;
-      this.loadSamples();
+    },
+    // rebuild a dead/"interrupted" context (iOS standalone after app switch); decoded samples are reused
+    recreate() {
+      const hadMusic = !!this.musicTimer;
+      this.stopMusic();
+      try { if (this.ctx && this.ctx.state !== 'closed') { const pr = this.ctx.close(); if (pr && pr.catch) pr.catch(() => {}); } } catch (e) { /* ignore */ }
+      this.createContext();
+      if (!this.ctx) return;
+      this.ctx.resume().catch(() => {});
+      this.primeContext();
+      if (this.loaded === 0) this.loadSamples();
+      if (hadMusic) this.startMusic();
+    },
+    primeContext() { // play one silent frame inside the user gesture — required by some iOS versions
+      try { const b = this.ctx.createBuffer(1, 1, 22050), s = this.ctx.createBufferSource(); s.buffer = b; s.connect(this.ctx.destination); s.start(0); } catch (e) { /* ignore */ }
+    },
+    silentTag() { // a looping silent <audio> element keeps the iOS media session active in home-screen mode
+      if (this.tag) return this.tag;
+      const n = 2205, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+      const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 22050, true); v.setUint32(28, 44100, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      const a = document.createElement('audio');
+      a.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+      a.loop = true; a.setAttribute('playsinline', ''); a.setAttribute('webkit-playsinline', ''); a.volume = 0.01;
+      this.tag = a;
+      return a;
     },
     impulse(seconds, decay) {
       const c = this.ctx, rate = c.sampleRate, len = Math.floor(rate * seconds);
@@ -66,12 +107,26 @@
           .catch(() => { /* procedural fallback stays active for this sound */ });
       }
     },
+    // call from every user gesture: cheap when audio already runs
     unlock() {
       this.init();
+      if (!this.ctx) return;
+      this.setSession();
+      const tag = this.silentTag();
+      if (tag.paused) { const pr = tag.play(); if (pr && pr.catch) pr.catch(() => {}); }
+      if (this.ctx.state === 'running') return;
+      this.ctx.resume().then(() => { if (this.ctx.state !== 'running') this.recreate(); }).catch(() => this.recreate());
+      this.primeContext();
+      clearTimeout(this._chk);
+      this._chk = setTimeout(() => { if (this.ctx && this.ctx.state !== 'running') this.recreate(); }, 350);
+    },
+    suspend() {
+      if (this.tag && !this.tag.paused) this.tag.pause();
+      if (this.ctx && this.ctx.state === 'running') this.ctx.suspend().catch(() => {});
+    },
+    resume() {
       if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
     },
-    suspend() { if (this.ctx && this.ctx.state === 'running') this.ctx.suspend().catch(() => {}); },
-    resume() { if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {}); },
     applySettings() {
       if (!this.ctx) return;
       const s = CA.Store.settings, t = this.ctx.currentTime;
