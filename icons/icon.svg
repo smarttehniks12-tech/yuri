@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="55%" r="75%">
+      <stop offset="0" stop-color="#3a1470"/><stop offset="0.55" stop-color="#140a26"/><stop offset="1" stop-color="#05030a"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="0.25" stop-color="#9ad8ff"/><stop offset="0.6" stop-color="#4fb8ff" stop-opacity="0.45"/><stop offset="1" stop-color="#4fb8ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#a9b8d8"/></linearGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a3260"/><stop offset="1" stop-color="#0d1024"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#b06aff" stroke-width="12" opacity="0.9"/>
+  <path d="M 120 330 A 150 150 0 0 1 360 120" fill="none" stroke="#ff3a6a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="330" cy="250" r="120" fill="url(#orb)"/>
+  <!-- body -->
+  <path d="M 200 300 L 300 300 L 318 450 L 182 452 Z" fill="url(#coat)" stroke="#0b0710" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="204" y="292" width="92" height="18" fill="#0d1024"/>
+  <!-- raised arm with glowing hand -->
+  <path d="M 292 310 L 330 270 L 334 232" fill="none" stroke="#0b0710" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 292 310 L 330 270 L 334 232" fill="none" stroke="#1b2140" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="334" cy="228" r="16" fill="#ffffff"/>
+  <!-- head -->
+  <ellipse cx="258" cy="240" rx="58" ry="60" fill="#f3dccb" stroke="#0b0710" stroke-width="8"/>
+  <!-- blindfold -->
+  <path d="M 198 232 L 318 226 L 318 258 L 198 262 Z" fill="#07070c"/>
+  <path d="M 200 248 Q 170 258 156 282" fill="none" stroke="#07070c" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="296" cy="244" r="10" fill="#8fe3ff" opacity="0.9"/>
+  <!-- spiky white hair -->
+  <path d="M 196 240 L 170 196 L 206 200 L 196 140 L 236 176 L 248 104 L 272 168 L 304 112 L 304 176 L 344 152 L 322 204 L 352 210 L 318 236 L 300 212 L 220 212 Z"
+        fill="url(#hair)" stroke="#0b0710" stroke-width="8" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,49 @@
+# Builds the PWA (renders PNG icons from icons/icon.svg) and publishes it to GitHub Pages.
+# One-time setup: repository Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+name: Deploy game to GitHub Pages
+
+on:
+  push:
+    branches: ['claude/cursed-arena-awakening-game-iw4by5', 'main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SVG renderer
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq librsvg2-bin
+
+      - name: Build site
+        run: |
+          mkdir -p _site/icons
+          cp -r index.html style.css manifest.json service-worker.js js _site/
+          cp icons/icon.svg _site/icons/
+          rsvg-convert -w 192 -h 192 icons/icon.svg -o _site/icons/icon-192.png
+          rsvg-convert -w 512 -h 512 icons/icon.svg -o _site/icons/icon-512.png
+          rsvg-convert -w 512 -h 512 icons/icon.svg -o _site/icons/icon-maskable-512.png
+          rsvg-convert -w 180 -h 180 icons/icon.svg -o _site/icons/apple-touch-icon.png
+          ls -la _site _site/icons
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
