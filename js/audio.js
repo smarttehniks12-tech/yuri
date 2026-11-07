@@ -46,7 +46,17 @@
       const comp = c.createDynamicsCompressor();
       comp.threshold.value = -10; comp.knee.value = 8; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.18;
       this.master = c.createGain();
-      this.master.connect(comp); comp.connect(c.destination);
+      this.master.connect(comp);
+      // Output route. iOS home-screen apps (standalone) often keep Web Audio silent; routing the whole mix
+      // through a MediaStream into a regular <audio> element plays it through the media path that does work there.
+      this.route = this.pickRoute();
+      if (this.route === 'media' && c.createMediaStreamDestination) {
+        this.dest = c.createMediaStreamDestination();
+        comp.connect(this.dest);
+        const el = this.outEl || (this.outEl = document.createElement('audio'));
+        el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.autoplay = true;
+        try { el.srcObject = this.dest.stream; } catch (e) { this.route = 'direct'; comp.connect(c.destination); }
+      } else { this.route = 'direct'; comp.connect(c.destination); }
       for (const k of ['sfx', 'skills', 'ui', 'music']) { const g = c.createGain(); g.connect(this.master); this.cats[k] = g; }
       // shared noise buffer (procedural fallback + drums)
       const len = c.sampleRate * 1.2, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
@@ -76,6 +86,17 @@
     },
     primeContext() { // play one silent frame inside the user gesture — required by some iOS versions
       try { const b = this.ctx.createBuffer(1, 1, 22050), s = this.ctx.createBufferSource(); s.buffer = b; s.connect(this.ctx.destination); s.start(0); } catch (e) { /* ignore */ }
+    },
+    isStandalone() { return !!(navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)); },
+    pickRoute() {
+      const m = (CA.Store && CA.Store.settings.audioMode) || 'auto';
+      if (m === 'direct' || m === 'media') return m;
+      return this.isStandalone() ? 'media' : 'direct';
+    },
+    setRoute(mode) { CA.Store.settings.audioMode = mode; CA.Store.save(); if (this.ctx) this.recreate(); },
+    status() {
+      return { state: this.ctx ? this.ctx.state : 'нет', route: this.route || '-', standalone: this.isStandalone(), loaded: this.loaded + '/' + this.total,
+        el: this.outEl ? (this.outEl.paused ? 'пауза' : 'играет') : '-', session: navigator.audioSession ? navigator.audioSession.type : 'нет' };
     },
     silentTag() { // a looping silent <audio> element keeps the iOS media session active in home-screen mode
       if (this.tag) return this.tag;
@@ -112,8 +133,7 @@
       this.init();
       if (!this.ctx) return;
       this.setSession();
-      const tag = this.silentTag();
-      if (tag.paused) { const pr = tag.play(); if (pr && pr.catch) pr.catch(() => {}); }
+      if (this.route === 'media' && this.outEl && this.outEl.paused) { const pr = this.outEl.play(); if (pr && pr.catch) pr.catch(() => {}); }
       if (this.ctx.state === 'running') return;
       this.ctx.resume().then(() => { if (this.ctx.state !== 'running') this.recreate(); }).catch(() => this.recreate());
       this.primeContext();
@@ -121,7 +141,7 @@
       this._chk = setTimeout(() => { if (this.ctx && this.ctx.state !== 'running') this.recreate(); }, 350);
     },
     suspend() {
-      if (this.tag && !this.tag.paused) this.tag.pause();
+      if (this.outEl && !this.outEl.paused) this.outEl.pause();
       if (this.ctx && this.ctx.state === 'running') this.ctx.suspend().catch(() => {});
     },
     resume() {

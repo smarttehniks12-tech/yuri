@@ -35,6 +35,7 @@
       if (window.visualViewport) window.visualViewport.addEventListener('resize', () => this.resize());
       CA.Input.init(canvas);
       CA.Input.onPress = (id) => this.onButton(id);
+      CA.Input.onRelease = (id) => { if (this.state === 'play' && this.player && id[0] === 's') CA.Aim.release(this, this.player, +id[1]); };
       this.last = performance.now();
       requestAnimationFrame((ts) => this.loop(ts));
     },
@@ -636,7 +637,7 @@
       if (id === 'domain') { if (p.useDomain()) return; CA.Audio.play('back', 0.4); return; }
       if (id[0] === 's') {
         const i = +id[1];
-        if (p.useSkill(i)) CA.Audio.vibrate('light');
+        if (CA.Aim.press(this, p, i)) CA.Audio.vibrate('light');
         else CA.Audio.play('back', 0.3);
       }
     },
@@ -653,6 +654,7 @@
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       if (this.domain) this.domain.def.drawBg(ctx, this, this.domain, v);
       else CA.Locations.drawGround(ctx, v, this.realT);
+      if (!this.domain) CA.Locations.drawFog(ctx, v, this.realT);
       FX.drawUnder(ctx, v);
       CA.A.drawZones(ctx, true, v);
       this.drawTelegraphs(ctx);
@@ -758,6 +760,18 @@
         this._vig = c; this._vigW = W; this._vigH = H;
       }
       ctx.drawImage(this._vig, 0, 0, W, H);
+      // per-location colour grading (cached gradient strip)
+      const loc = this.loc;
+      if (loc && !this.domain) {
+        if (!this._grade || this._gradeKey !== loc.id + W + 'x' + H) {
+          const c = U.makeCanvas(4, 256), g = c.getContext('2d');
+          const gr = g.createLinearGradient(0, 0, 0, 256);
+          gr.addColorStop(0, U.hexA(loc.accent, 0.16)); gr.addColorStop(0.45, U.hexA(loc.accent, 0)); gr.addColorStop(0.7, 'rgba(0,0,0,0)'); gr.addColorStop(1, U.hexA(loc.fog, 0.35));
+          g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+          this._grade = c; this._gradeKey = loc.id + W + 'x' + H;
+        }
+        ctx.drawImage(this._grade, 0, 0, W, H);
+      }
       const z = this.cam.zoom, p = this.player;
       const psx = (p.x - this.cam.x) * z + W / 2, psy = (p.y - 20 - this.cam.y) * z + H / 2;
       // blackout event

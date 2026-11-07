@@ -125,7 +125,7 @@
         cast(G, p, L) {
           const n = [3, 4, 5, 6, 8][L - 1];
           const dmg = A.dmg(p, [32, 36, 44, 48, 52][L - 1]);
-          const list = A.inRadius(p.x, p.y, 480, []);
+          const list = A.inRadius(A.cx(p), A.cy(p), 480, []);
           if (!list.length) return false;
           bloodCost(G, p, 0.02);
           list.sort((a, b) => U.dist2(p.x, p.y, a.x, a.y) - U.dist2(p.x, p.y, b.x, b.y));
@@ -153,7 +153,7 @@
         desc: 'Взрывает кровь во всех меченых врагах.',
         levels: ['Детонирует все метки в радиусе 420: урон за каждую метку.', 'Урон за метку +25%.', 'Радиус брызг +30%.', 'Урон за метку +30%.', 'После взрыва все задетые получают по 2 новые метки.'],
         cast(G, p, L) {
-          const list = A.inRadius(p.x, p.y, 420, []).filter((e) => e.marks > 0);
+          const list = A.inRadius(A.cx(p), A.cy(p), 420, []).filter((e) => e.marks > 0);
           if (!list.length) return false;
           const per = A.dmg(p, [22, 27, 28, 36, 40][L - 1]);
           const sr = (L >= 3 ? 70 : 54) * p.area;

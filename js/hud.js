@@ -235,6 +235,23 @@
         const lv = p.lv[s.id] || 0;
         const cd = Math.max(0, p.cds[s.id] || 0), mx = p.cdMax[s.id] || 1;
         this.btn(ctx, b, { icon: s.icon, color: col, locked: lv === 0, cd, cdFrac: cd / mx, ready: lv > 0 && cd <= 0, level: lv });
+        const stv = p.steer && p.steer[s.id];
+        if (stv && CA.Aim.alive(stv) && p.steerSlot !== i) { ctx.strokeStyle = 'rgba(255,255,255,' + (0.5 + Math.sin(G.realT * 10) * 0.4) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 6, 0, TAU); ctx.stroke(); }
+      }
+      // aim / steer sticks on held skill buttons
+      for (let i = 0; i < 4; i++) {
+        const b = L.skills[i], a = CA.Input.aim['s' + i];
+        if (!CA.Input.down['s' + i] || !a) continue;
+        const aiming = p.aimSlot === i, steering = p.steerSlot === i;
+        if (!aiming && !steering) continue;
+        ctx.strokeStyle = steering ? '#ffffff' : U.hexA(col, 0.8); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 78, 0, TAU); ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fill();
+        const kx = b.x + a.x * a.mag * 78, ky = b.y + a.y * a.mag * 78;
+        FX.glow(ctx, kx, ky, 34, col, 0.6);
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(kx, ky, 14, 0, TAU); ctx.fill();
+        ctx.font = '800 10px ' + FONT; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+        ctx.fillText(steering ? 'УПРАВЛЕНИЕ' : a.mag < 0.22 ? 'АВТОПРИЦЕЛ' : 'ПРИЦЕЛ', b.x, b.y - 88);
       }
       // ult
       const uReady = p.ce >= p.ultCost() && !(G.ultActive > 0);

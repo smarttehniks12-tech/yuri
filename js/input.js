@@ -10,6 +10,7 @@
     down: {},             // id -> bool
     pressT: {},           // id -> last press time (for press animation)
     owners: {},           // pointerId -> button id
+    aim: {},              // button id -> {x, y, mag} drag vector (skill-button aiming sticks)
     keys: {},
     onPress: null,        // fn(id)
     onRelease: null,
@@ -55,6 +56,7 @@
       if (b) {
         this.owners[e.pointerId] = b.id;
         this.down[b.id] = true;
+        this.aim[b.id] = { ox: b.x, oy: b.y, x: 0, y: 0, mag: 0 };
         this.pressT[b.id] = performance.now();
         if (this.onPress) this.onPress(b.id);
         return;
@@ -67,6 +69,15 @@
     },
     pMove(e) {
       if (!this.enabled) return;
+      const bid = this.owners[e.pointerId];
+      if (bid && this.aim[bid]) {
+        e.preventDefault();
+        const a = this.aim[bid], R = 78;
+        const dx = e.clientX - a.ox, dy = e.clientY - a.oy, d = Math.hypot(dx, dy);
+        a.mag = Math.min(1, d / R);
+        if (d > 1) { a.x = dx / d; a.y = dy / d; }
+        return;
+      }
       const j = this.joy;
       if (j.active && e.pointerId === j.id) {
         e.preventDefault();

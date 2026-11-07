@@ -73,7 +73,7 @@
         cast(G, p, L) {
           const n = [5, 7, 7, 10, 15][L - 1];
           const R = (L >= 4 ? 320 : 260) * p.area;
-          const list = A.inRadius(p.x, p.y, R, []);
+          const list = A.inRadius(A.cx(p), A.cy(p), R, []);
           if (!list.length) return false;
           U.shuffle(list);
           const dmg = A.dmg(p, [24, 26, 32, 36, 42][L - 1]);
@@ -180,7 +180,7 @@
         levels: ['Король рывками казнит 3 ближайших врагов.', '4 цели.', 'Урон +30%.', '6 целей.', '8 целей, каждый удар — крестообразный разрез.'],
         cast(G, p, L) {
           const n = [3, 4, 4, 6, 8][L - 1];
-          const list = A.inRadius(p.x, p.y, 320, []);
+          const list = A.inRadius(A.cx(p), A.cy(p), 320, []);
           if (!list.length) return false;
           list.sort((a, b) => (b.bossId ? 1e9 : 0) - (a.bossId ? 1e9 : 0) || U.dist2(p.x, p.y, a.x, a.y) - U.dist2(p.x, p.y, b.x, b.y));
           const dmg = A.dmg(p, [55, 60, 78, 82, 90][L - 1]);

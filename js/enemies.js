@@ -46,7 +46,7 @@
       e.hitFlash = 0; e.slowT = 0; e.slowAmt = 0; e.stunT = 0; e.burnT = 0; e.burnDps = 0; e.marks = 0; e.markT = 0;
       e.atkCd = 0.5; e.st = 0; e.stT = 0; e.cd = U.rand(0.5, 2); e.ax = 0; e.ay = 0;
       e.shieldHp = d.shield ? e.maxHp * 0.6 : 0;
-      e.face = 1; e.seen = false; e.noXp = !!opts.noXp; e.hitBy = 0; e.immune = 0;
+      e.face = 1; e.seen = false; e.noXp = !!opts.noXp; e.hitBy = 0; e.immune = 0; e.spawnT = 0.45;
       e.sprR = Math.round(d.r);
       G.enemies.push(e);
       return e;
@@ -64,6 +64,7 @@
         if (!e.alive) continue;
         e.t += dt;
         if (e.hitFlash > 0) e.hitFlash -= dt;
+        if (e.spawnT > 0) e.spawnT -= dt;
         if (e.immune > 0) e.immune -= dt;
         if (e.boss) { e.boss.update(e, G, dt); this.physics(G, e, dt); continue; }
         if (e.burnT > 0) {
@@ -265,12 +266,22 @@
         if (e.elite) {
           CA.FX.glow(ctx, e.x, e.y, e.r * 2.6, '#ffc83a', 0.45 + Math.sin(e.t * 5) * 0.15);
         }
+        if (e.spawnT > 0) { // emerging from a cursed portal
+          const k = e.spawnT / 0.45;
+          ctx.globalAlpha = 0.85 * k;
+          ctx.fillStyle = '#05010a';
+          ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * 0.7, e.r * (1.6 - k * 0.4), e.r * 0.5, 0, 0, TAU); ctx.fill();
+          ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#a05aff'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * 0.7, e.r * (1.6 - k * 0.4), e.r * 0.5, 0, 0, TAU); ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+        }
         const fr = Math.floor(e.t * d.anim) & 1;
         const flip = e.face < 0;
         const s = CA.Sprites.enemySprite(d.ai === 'ogre' ? 'ogre' : e.type, fr, flip, e.sprR);
         let ox = 0, oy = d.fly ? Math.sin(e.t * 4 + e.id) * 4 - 6 : 0;
         if (d.ai === 'teleport' && Math.random() < 0.06) ox = (Math.random() - 0.5) * 8;
-        let sc = scale;
+        let sc = scale * (1 + e.hitFlash * 1.6) * (e.spawnT > 0 ? 1 - e.spawnT / 0.45 * 0.7 : 1);
+        if (e.spawnT > 0) oy += e.spawnT * 30;
         if (d.ai === 'exploder' && e.st === 1) sc *= 1 + Math.sin(e.t * 40) * 0.08 + (0.6 - e.stT) * 0.5;
         if (d.ai === 'charger' && e.st === 1) ox += (Math.random() - 0.5) * 4;
         const w = s.size * sc, hh = s.half * sc;

@@ -155,7 +155,7 @@
           let x, y;
           if (t) { x = t.x; y = t.y; } else { x = p.x + Math.cos(p.dirA) * 160; y = p.y + Math.sin(p.dirA) * 160; }
           A.chargeFx(p, BLUE, 0.2);
-          blueZone(G, p, x, y, L);
+          CA.Aim.register(p, 'sp_blue', blueZone(G, p, x, y, L), 'zone');
         },
       },
       {
@@ -205,7 +205,7 @@
             G.shake(10); G.flash(PURPLE, 0.25); G.hitstop(0.05);
             CA.Audio.play('bigboom', 0.6);
             FX.ring(p.x, p.y - 20, 10, 90, 0.4, PURPLE, 6);
-            A.proj({
+            const vp = A.proj({
               x: p.x + Math.cos(a) * 20, y: p.y - 20, a, speed: L >= 3 ? 400 : 340, r: R, life: L >= 3 ? 2.4 : 2.0, pierce: 999, trail: 0,
               dmg, opt: { src: 'sp_void', big: true, knock: 120 }, color: PURPLE,
               update(pr, dt) {
@@ -232,6 +232,7 @@
               },
               onEnd(pr) { FX.disc(pr.x, pr.y, R * 2, 0.4, PURPLE, 0.8); FX.burst(pr.x, pr.y, PURPLE, 20, 300, 6, 0.6); },
             });
+            CA.Aim.register(p, 'sp_void', vp, 'proj');
           });
         },
       },

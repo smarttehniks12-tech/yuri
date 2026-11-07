@@ -346,6 +346,23 @@
       if (view.x1 > WORLD + 26) ctx.fillRect(WORLD + 26, view.y0, view.x1 - WORLD - 26, view.y1 - view.y0);
       if (view.y1 > WORLD + 26) ctx.fillRect(view.x0, WORLD + 26, view.x1 - view.x0, view.y1 - WORLD - 26);
     },
+    // drifting ground mist patches (world-anchored, location tinted)
+    drawFog(ctx, view, t) {
+      const loc = this.cur, soft = CA.FX.getSoft(loc.fog), glow = CA.FX.getSoft(loc.accent);
+      const S = 520, ox = Math.floor(view.x0 / S) - 1, oy = Math.floor(view.y0 / S) - 1;
+      ctx.globalCompositeOperation = 'lighter';
+      for (let gx = ox; gx <= ox + Math.ceil((view.x1 - view.x0) / S) + 2; gx++) {
+        for (let gy = oy; gy <= oy + Math.ceil((view.y1 - view.y0) / S) + 2; gy++) {
+          const h = ((gx * 73856093) ^ (gy * 19349663)) >>> 0;
+          const x = gx * S + (h % 300) + Math.sin(t * 0.15 + h) * 60, y = gy * S + ((h >> 8) % 300) + Math.cos(t * 0.12 + h) * 40;
+          const r = 220 + (h % 160);
+          ctx.globalAlpha = 0.5;
+          ctx.drawImage(soft, x - r, y - r * 0.6, r * 2, r * 1.2);
+          if (h % 3 === 0) { ctx.globalAlpha = 0.07 + Math.sin(t * 0.8 + h) * 0.03; ctx.drawImage(glow, x - r * 0.6, y - r * 0.35, r * 1.2, r * 0.7); }
+        }
+      }
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    },
     updateAmbient(dt, view) {
       const loc = this.cur, A = this.amb;
       const target = Math.round((loc.ambient === 'rain' ? 70 : 34) * CA.FX.mult);

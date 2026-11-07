@@ -45,8 +45,13 @@
       return out;
     },
     // densest cluster point among enemies within range of (x,y)
+    // manual aim (drag on a skill button) overrides auto-targeting during that cast
+    cx(p) { return p.aimOverride ? p.aimOverride.pt.x : p.x; },
+    cy(p) { return p.aimOverride ? p.aimOverride.pt.y : p.y; },
     densest(x, y, range) {
       const G = this.G;
+      const ov = G.player && G.player.aimOverride;
+      if (ov && x === G.player.x && y === G.player.y) return { x: ov.pt.x, y: ov.pt.y, r: 0, alive: true };
       const list = this.inRadius(x, y, range, []);
       if (!list.length) return null;
       let best = list[0], bc = -1;
@@ -63,6 +68,7 @@
     },
     // aim: towards nearest enemy, else movement direction
     aim(p, range) {
+      if (p.aimOverride) return p.aimOverride.a;
       const e = this.nearest(p.x, p.y, range || 520);
       if (e) return Math.atan2(e.y - p.y, e.x - p.x);
       return p.dirA;

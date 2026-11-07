@@ -32,7 +32,7 @@
       settings: {
         master: 0.8, sfx: true, skills: true, ui: true, music: true,
         musicVol: 0.5, vibration: true, quality: 'high', autoAttack: true,
-        dmgNumbers: true, showFps: false, screenShake: true, lang: 'ru',
+        dmgNumbers: true, showFps: false, audioMode: 'auto', screenShake: true, lang: 'ru',
       },
       daily: { date: '', quests: [], bonusClaimed: false },
       runSnapshot: null,

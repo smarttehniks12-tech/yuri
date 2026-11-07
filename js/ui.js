@@ -172,6 +172,12 @@
           el.classList.toggle('on', CA.Store.settings[k]);
           break;
         }
+        case 'audiomode': CA.Audio.setRoute(ds.v); CA.Audio.unlock(); this.settings(ds.from); break;
+        case 'soundtest': {
+          CA.Audio.unlock();
+          setTimeout(() => { CA.Audio.play('levelup'); const st = CA.Audio.status(); const el = $('#sndStatus'); if (el) el.textContent = 'звук: ' + st.state + ' · вывод: ' + st.route + ' · плеер: ' + st.el + ' · файлов: ' + st.loaded + (st.standalone ? ' · режим приложения' : ' · Safari'); }, 250);
+          break;
+        }
         case 'quality': CA.Store.settings.quality = ds.v; CA.Store.save(); CA.Game.resize(); click(); this.settings(ds.from); break;
         case 'reset':
           if (confirm('Сбросить ВЕСЬ прогресс? Это действие нельзя отменить.')) { CA.Store.reset(); CA.Artifacts.ensureDefaults(); CA.Store.save(); this.toast('Прогресс сброшен'); this.menu(); }
@@ -389,6 +395,9 @@
         '<h3 class="sec">ЗВУК</h3>' +
         '<label class="slider"><span>Общая громкость</span><input type="range" min="0" max="1" step="0.05" value="' + s.master + '" data-set="master"></label>' +
         '<label class="slider"><span>Громкость музыки</span><input type="range" min="0" max="1" step="0.05" value="' + s.musicVol + '" data-set="musicVol"></label>' +
+        '<label class="slider"><span>Режим звука на iPhone</span><small class="note">Если с иконки на главном экране нет звука — попробуйте другой режим и нажмите «Проверить».</small></label>' +
+        '<div class="seg">' + [['auto', 'Авто'], ['media', 'Через плеер'], ['direct', 'Прямой']].map(([k, n]) => '<button class="' + ((s.audioMode || 'auto') === k ? 'on' : '') + '" data-act="audiomode" data-v="' + k + '" data-from="' + (from || '') + '">' + n + '</button>').join('') + '</div>' +
+        '<button class="mbtn" data-act="soundtest"><b>ПРОВЕРИТЬ ЗВУК</b><small id="sndStatus">нажмите, должен прозвучать сигнал</small></button>' +
         tg('music', 'Музыка', 'Процедурный эмбиент и боевые треки') + tg('sfx', 'Звуки боя', 'Удары, выстрелы, взрывы') + tg('skills', 'Звуки техник', 'Ультимейты, территории, призывы') + tg('ui', 'Звуки интерфейса') +
         '<h3 class="sec">УПРАВЛЕНИЕ</h3>' + tg('vibration', 'Вибрация / тактильный отклик', 'На iPhone — системный отклик при нажатиях') + tg('autoAttack', 'Автоатака', 'Обычная атака срабатывает сама; удержание кнопки ускоряет её на 30%') +
         '<h3 class="sec">ГРАФИКА</h3><div class="seg q">' + ['low', 'medium', 'high'].map((q) => '<button class="' + (s.quality === q ? 'on' : '') + '" data-act="quality" data-v="' + q + '" data-from="' + (from || '') + '">' + { low: 'Низкое', medium: 'Среднее', high: 'Высокое' }[q] + '</button>').join('') + '</div>' +

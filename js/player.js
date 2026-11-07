@@ -29,6 +29,7 @@
       this.mult = { dmg: 1, hp: 1 }; // multiplicative (artifacts)
       this.meta = CA.Prog.metaBonuses();
       this.state = {}; // per-kit scratch
+      this.aimSlot = -1; this.steerSlot = -1; this.steer = {}; this.aimOverride = null;
       this.alpha = 1;
       this.dead = false;
       this.domainUses = 0; this.ultUses = 0;
@@ -280,6 +281,7 @@
       if (P.update) P.update(G, this, this.lv[P.id] || 1, dt);
       if (this.kit.update) this.kit.update(G, this, dt);
       for (const h of this.hooks.tick) h(dt);
+      CA.Aim.update(G, this, dt);
     }
     draw(ctx) {
       const flick = this.invuln > 0 && this.hurtT > 0 ? (Math.floor(this.t * 30) % 2 ? 0.45 : 1) : 1;
@@ -293,11 +295,14 @@
       if (this.ce >= this.ultCost()) { ctx.globalAlpha = 0.35 + Math.sin(this.t * 6) * 0.15; ctx.setLineDash([]); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(this.x, this.y + 1, 30, 11, 0, 0, Math.PI * 2); ctx.stroke(); }
       ctx.restore();
       if (this.kit.drawUnder) this.kit.drawUnder(ctx, this.G, this);
+      // rim light / energy halo behind the sorcerer
+      CA.FX.glow(ctx, this.x, this.y - 26, 46 + Math.sin(this.t * 3) * 4, this.ch.color, 0.22 + this.cast * 0.3);
       CA.Sprites.drawCharacter(ctx, this.id, this.x, this.y, {
         t: this.t, move: this.moving ? Math.min(1, this.moveMag) : 0, face: this.face, atk: this.atk, aimA: this.aimA,
         cast: this.cast, alpha: this.alpha * flick, scale: 1.15, extraArms: this.state.extraArms, eyeGlow: this.cast > 0.2 ? this.cast : 0,
       });
       if (this.kit.drawOver) this.kit.drawOver(ctx, this.G, this);
+      CA.Aim.draw(ctx, this.G, this);
     }
   }
   CA.Player = Player;
