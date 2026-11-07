@@ -295,3 +295,11 @@ small.en { display: block; font-size: 10px; color: var(--dim); font-style: itali
   .pause .mbtn { max-width: 300px; }
   .tut-in { max-width: 560px; }
 }
+
+/* ---------- admin panel ---------- */
+.adm-login { max-width: 360px; margin: 8vh auto 0; display: flex; flex-direction: column; gap: 10px; }
+.adm-login input { font: inherit; font-size: 22px; letter-spacing: 6px; text-align: center; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: #fff; -webkit-user-select: text; user-select: text; }
+.adm-login .note { color: #ff7a8a; text-align: center; min-height: 18px; }
+.adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.adm-grid .mbtn { margin: 0; min-height: 48px; }
+.adm-grid .mbtn b { font-size: 12px; letter-spacing: .5px; font-style: normal; }

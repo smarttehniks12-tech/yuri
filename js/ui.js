@@ -199,6 +199,9 @@
         case 'quit': if (confirm('Покинуть забег? Награда будет начислена за текущий прогресс.')) { this.root.innerHTML = ''; CA.Game.quitRun(); } break;
         case 'again': click(); this.startGame(d.selectedChar, d.selectedLocation); break;
         case 'tutok': click(); $('.tut') && $('.tut').remove(); break;
+        case 'admin': click(); CA.Admin.open(ds.from); break;
+        case 'admlogin': CA.Admin.login(ds.from); break;
+        case 'adm': CA.Admin.op(ds.op); break;
         case 'pausesettings': click(); this.settings('pause'); break;
         case 'backpause': click(); this.pauseMenu(); break;
       }
@@ -403,6 +406,7 @@
         '<h3 class="sec">ГРАФИКА</h3><div class="seg q">' + ['low', 'medium', 'high'].map((q) => '<button class="' + (s.quality === q ? 'on' : '') + '" data-act="quality" data-v="' + q + '" data-from="' + (from || '') + '">' + { low: 'Низкое', medium: 'Среднее', high: 'Высокое' }[q] + '</button>').join('') + '</div>' +
         tg('screenShake', 'Тряска экрана') + tg('dmgNumbers', 'Цифры урона') + tg('showFps', 'Показывать FPS') +
         (from === 'pause' ? '' : '<h3 class="sec">ДАННЫЕ</h3><p class="note">Прогресс хранится только на этом устройстве (localStorage) и работает без интернета.</p><button class="mbtn danger" data-act="reset"><b>СБРОСИТЬ ПРОГРЕСС</b></button>') +
+        '<h3 class="sec">АДМИНИСТРИРОВАНИЕ</h3><button class="mbtn" data-act="admin" data-from="' + (from || '') + '"><b>АДМИН-ПАНЕЛЬ</b><small>Защищена паролем</small></button>' +
         '<h3 class="sec">КЛАВИАТУРА (ПК)</h3><p class="note">WASD — движение · J/Пробел — атака · 1-4 — техники · Q — ультимейт · E — территория · P — пауза</p>' +
         '</div>';
       this.open(html);
@@ -566,7 +570,7 @@
       let arts = p.artifacts.map((a) => '<div class="bt" style="--rc:' + R[a.rarity].color + '"><i>' + CA.Icons.img(a.id, R[a.rarity].color) + '</i><b>' + a.ru + '</b></div>').join('') || '<p class="note">Нет артефактов</p>';
       this.root.innerHTML = '<div class="overlay pause"><h2>ПАУЗА</h2><div class="pinfo">' + U.fmtTime(G.t) + ' · уровень ' + p.level + ' · ☠ ' + G.run.kills + '</div>' +
         '<div class="pcols"><div><h3 class="sec">ТЕХНИКИ</h3>' + build + '</div><div><h3 class="sec">АРТЕФАКТЫ</h3>' + arts + '</div></div>' +
-        '<button class="mbtn play" data-act="resume"><b>ПРОДОЛЖИТЬ</b></button><button class="mbtn" data-act="pausesettings"><b>НАСТРОЙКИ</b></button><button class="mbtn danger" data-act="quit"><b>ПОКИНУТЬ ЗАБЕГ</b></button></div>';
+        '<button class="mbtn play" data-act="resume"><b>ПРОДОЛЖИТЬ</b></button><button class="mbtn" data-act="pausesettings"><b>НАСТРОЙКИ</b></button><button class="mbtn" data-act="admin" data-from="pause"><b>АДМИН-ПАНЕЛЬ</b></button><button class="mbtn danger" data-act="quit"><b>ПОКИНУТЬ ЗАБЕГ</b></button></div>';
       this.screen = 'pause';
     },
 

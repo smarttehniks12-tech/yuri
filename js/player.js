@@ -66,6 +66,7 @@
       if (kind === 'basic') m *= 1 + this.bonus.basicDmg;
       for (const b of this.buffs) if (b.dmg) m *= 1 + b.dmg;
       if (this.kit.dmgMod) m *= this.kit.dmgMod(this);
+      if (CA.Store.settings.cheatDmg) m *= 10;
       return m;
     }
     get speedNow() {
@@ -129,7 +130,7 @@
       if (d >= 3) CA.FX.text(this.x, this.y - 50, '+' + Math.round(d), '#5aff8a', 13);
     }
     hurt(amount, src, bullet) {
-      if (this.dead || this.invuln > 0) return false;
+      if (this.dead || this.invuln > 0 || CA.Store.settings.cheatGod) return false;
       for (const h of this.hooks.hurt) { amount = h(amount, src, bullet); if (amount <= 0) return false; }
       if (this.shieldOrbs > 0) {
         this.shieldOrbs--;
@@ -255,6 +256,7 @@
       let regen = this.regen;
       for (const b of this.buffs) if (b.regen) regen += b.regen * this.maxHp;
       if (regen > 0) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
+      CA.Admin.tick(this);
       // passive CE trickle
       this.gainCe(0.35 * dt);
       // buffs
