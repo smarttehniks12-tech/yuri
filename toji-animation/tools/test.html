@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#222">
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="../js/core.js"></script><script src="../js/shade.js"></script>
+<script src="../js/hero.js"></script><script src="../js/face.js"></script>
+<script>
+const ctx = document.getElementById('c').getContext('2d');
+window.draw = function(which){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#3a4050'; ctx.fillRect(0,0,W,H);
+  setLight({kx:0.7,ky:-0.7,rim:'#a8c8ff'});
+  if(which==='faces'){
+    [[0,1,0],[0.35,1,0.6],[-0.3,0,0]].forEach(([yaw,bulk,sm],i)=>{
+      ctx.save(); ctx.translate(330+i*630,520); ctx.scale(0.8,0.8);
+      drawFace(ctx,{yaw,bulk,t:1,smile:sm,open:bulk?0.8:1}); ctx.restore();
+    });
+  } else if(which==='bodies'){
+    ctx.save(); ctx.translate(300,1000); ctx.scale(1.8,1.8); drawHeroSide(ctx, pose({}), {bulk:1}); ctx.restore();
+    ctx.save(); ctx.translate(800,1000); ctx.scale(1.8,1.8); drawHeroSide(ctx, runPose(0.25), {bulk:1, wind:1}); ctx.restore();
+    ctx.save(); ctx.translate(1250,1000); ctx.scale(1.8,1.8); drawHeroFront(ctx, {bulk:1,t:1}); ctx.restore();
+    ctx.save(); ctx.translate(1700,1000); ctx.scale(1.8,1.8); drawHeroFront(ctx, {bulk:1,t:1,back:true}); ctx.restore();
+  } else if(which==='eye'){
+    ctx.save(); ctx.translate(960,560); ctx.scale(0.8,0.8); drawEyeMacro(ctx,{bulk:1,open:0.85}); ctx.restore();
+  } else if(which==='head'){
+    ctx.save(); ctx.translate(600,560); ctx.scale(0.75,0.75); drawProfile(ctx,{bulk:1,t:1,open:0.8}); ctx.restore();
+    ctx.save(); ctx.translate(1500,560); ctx.scale(0.75,0.75); drawFace(ctx,{yaw:0.1,bulk:0,t:1}); ctx.restore();
+  }
+};
+</script>

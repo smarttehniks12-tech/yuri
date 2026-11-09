@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>mix</title>
+<script src="../js/core.js"></script><script src="../js/timing.js"></script><script src="../js/mix.js"></script>
+<script>
+window.runMix = async () => {
+  const buf = await buildMix('../');
+  const wav = toWav(buf);
+  window.__wav = wav;
+  return wav.length;
+};
+window.chunk = (i, n) => { const a = window.__wav.subarray(i, i + n); let s = ''; for (let k = 0; k < a.length; k += 0x8000) s += String.fromCharCode.apply(null, a.subarray(k, k + 0x8000)); return btoa(s); };
+</script>
