@@ -29,6 +29,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r index.html style.css manifest.json service-worker.js js icons audio _site/
+          mkdir -p _site/zombie-fortress && cp -r zombie-fortress/index.html zombie-fortress/style.css zombie-fortress/js zombie-fortress/vendor zombie-fortress/fonts zombie-fortress/audio _site/zombie-fortress/
           touch _site/.nojekyll
           ls -la _site _site/icons
 
