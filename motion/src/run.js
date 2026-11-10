@@ -4,7 +4,7 @@ const path = require('path');
 (async () => {
   const mode = process.argv[2];
   const b = await chromium.launch({ args: ['--font-render-hinting=none'] });
-  const pg = await b.newPage({ viewport: { width: 1920, height: 1080 } });
+  const pg = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   pg.on('pageerror', e => console.error('PAGEERR', e.message));
   await pg.goto('file://' + path.resolve(__dirname, 'index.html'));
   await pg.evaluate(() => document.fonts.load('800 40px Inter').then(() => document.fonts.load('700 40px Inter')).then(() => document.fonts.load('900 40px Inter')));
