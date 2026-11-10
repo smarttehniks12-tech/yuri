@@ -202,7 +202,7 @@ export function buildHorde(scene, T, sirenPos) {
     uTime.value = realT;
     holo.forEach((h, i) => {
       const a = clamp((t - h.t) / 0.22) * (1 - clamp((t - h.end + 0.25) / 0.25)), o = i * 4;
-      hm.setColorAt(i, hc.setRGB(1.0 * a * 0.62, 0.36 * a * 0.62, 0.12 * a * 0.62));
+      hm.setColorAt(i, hc.setRGB(1.0 * a * 0.2, 0.36 * a * 0.2, 0.12 * a * 0.2));
       let x = h.x, y = h.y, z = h.z, yaw = h.yaw, walk = h.walk;
       if (h.g === 2) { const u = clamp((t - h.t) / (h.end - h.t - 0.2)); x = lerp(h.sx, h.ex, u); z = lerp(h.sz, h.ez, u); y = groundH(x, z); yaw = Math.atan2(h.ex - h.sx, h.ez - h.sz); }
       dummy.position.set(x, y, z); dummy.rotation.set(h.lean || 0.15, yaw, h.roll || 0, 'YXZ'); dummy.scale.setScalar(a > 0 ? backOut(clamp((t - h.t) / 0.22), 1.5) : 0.0001); dummy.updateMatrix();

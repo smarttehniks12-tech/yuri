@@ -65,7 +65,7 @@ const grade = new ShaderPass({
       c = mix(vec3(l), c, uSat);
       vec2 d = (vUv - 0.5) * vec2(0.92, 1.0);
       c *= 1.0 - uVig * smoothstep(0.32, 0.92, length(d));
-      c = c * (1.0 - uFade) + rw * 0.22;
+      c = c * (1.0 - uFade) + rw * 0.08;
       gl_FragColor = vec4(c, 1.0);
     }`,
 });
@@ -169,7 +169,7 @@ function hud(t) {
   }
   // flashes / fades
   const rw = prog(t, T.hookEnd, T.rewindEnd);
-  let fl = rw > 0 && rw < 1 ? Math.sin(rw * Math.PI) * 0.5 : 0;
+  let fl = rw > 0 && rw < 1 ? Math.sin(rw * Math.PI) * 0.22 : 0;
   fl += 0.5 * (1 - prog(t, T.I + 1.05, T.I + 1.3)) * (t > T.I + 1.05 ? 1 : 0);         // floodlights snap on
   setOp(el.flash, 'fl', clamp(fl));
   const al = t > T.I && t < T.orda ? 0.5 * Math.pow(Math.sin(prog(t, T.I, T.I + 1.5) * Math.PI), 0.7) * (0.75 + 0.25 * Math.sin((t - T.I) * 18)) : 0;

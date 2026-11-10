@@ -224,7 +224,7 @@ export function buildFortify(scene, TX, M, T, W, dust) {
       l.head.rotation.set(pitch, yaw, 0, 'YXZ');
       setVisible(l.cone, on > 0.01 && a >= 1);
       if (l.cone.visible) { l.cone.position.set(l.x + aim.x * 0.3, l.h, l.z + aim.z * 0.3); l.cone.quaternion.setFromUnitVectors(down, aim); }
-      l.sl.intensity = a >= 1 ? on * 80 : 0;
+      l.sl.intensity = a >= 1 ? on * 30 : 0;
       l.sl.target.position.set(l.x + aim.x * 30, l.h + aim.y * 30, l.z + aim.z * 30);
     });
   }

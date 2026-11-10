@@ -285,7 +285,7 @@ export function buildHouse(scene, TX, M, T) {
       if (special) {
         const c = document.createElement('canvas'); c.width = 384; c.height = 136;
         const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-        lit = { canvas: c, tex: t, mat: new THREE.MeshBasicMaterial({ map: t, toneMapped: false }) };
+        lit = { canvas: c, tex: t, mat: new THREE.MeshBasicMaterial({ map: t, toneMapped: false, color: 0x8a8a8a }) };
         g.add(mesh(new THREE.PlaneGeometry(0.94, 0.34), lit.mat, { cast: false, receive: false, pos: [0, 0, 0.004] }));
       } else g.add(mesh(new THREE.PlaneGeometry(0.94, 0.34), M.black, { cast: false, pos: [0, 0, 0.004] }));
       g.add(mesh(new THREE.PlaneGeometry(0.94, 0.34), M.glass, { cast: false, pos: [0, 0, 0.02] }));
@@ -476,7 +476,7 @@ export function buildHouse(scene, TX, M, T) {
       if (eyes > 0) { x.fillStyle = `rgba(215,255,120,${eyes})`; x.shadowColor = '#d8ff7a'; x.shadowBlur = 12; x.beginPath(); x.arc(px - 11, 42, 4.2, 0, 7); x.arc(px + 11, 42, 4.2, 0, 7); x.fill(); x.shadowBlur = 0; }
     }
     b.tex.needsUpdate = true;
-    H.basementLight.intensity = k * 3;
+    H.basementLight.intensity = k * 1.0;
   };
   H.drawBasement(0, null, 0);
   return H;
