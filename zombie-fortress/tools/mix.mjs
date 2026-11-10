@@ -4,7 +4,7 @@ const T = JSON.parse(fs.readFileSync('T.json')), cuts = JSON.parse(fs.readFileSy
 const ev = []; // [file, at, volume, {from, dur, loop, fadeOut}]
 const SFX_GAIN = 0.42; // effects sit well under the narration
 const sfx = (n, at, v, o = {}) => ev.push([`raw/sfx/${n}.mp3`, at, v * SFX_GAIN, o]);
-cuts.forEach(c => ev.push(['raw/voice_fit.mp3', c.at, 2.8, { from: c.a, dur: c.b - c.a, fade: 0.012 }]));
+cuts.forEach(c => ev.push(['raw/voice_full.mp3', c.at, 2.8, { from: c.a, dur: c.b - c.a, fade: 0.012 }]));
 ev.push(['raw/music.mp3', 0, 0.075, { dur: 69.6, fadeOut: 1.2 }]);
 sfx('horde_loop', 0, 0.22, { dur: T.hookEnd, fadeOut: 0.3 }); sfx('horde_bang', 0.15, 0.15);
 sfx('rewind', T.hookEnd - 0.15, 0.8);
