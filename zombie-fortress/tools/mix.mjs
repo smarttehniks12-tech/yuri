@@ -2,9 +2,10 @@
 import fs from 'fs'; import { execFileSync } from 'child_process';
 const T = JSON.parse(fs.readFileSync('T.json')), cuts = JSON.parse(fs.readFileSync('cuts.json'));
 const ev = []; // [file, at, volume, {from, dur, loop, fadeOut}]
-const sfx = (n, at, v, o = {}) => ev.push([`raw/sfx/${n}.mp3`, at, v, o]);
-cuts.forEach(c => ev.push(['raw/voice_full.mp3', c.at, 1.9, { from: c.a, dur: c.b - c.a, fade: 0.012 }]));
-ev.push(['raw/music.mp3', 0, 0.2, { dur: 69.6, fadeOut: 1.2 }]);
+const SFX_GAIN = 0.42; // effects sit well under the narration
+const sfx = (n, at, v, o = {}) => ev.push([`raw/sfx/${n}.mp3`, at, v * SFX_GAIN, o]);
+cuts.forEach(c => ev.push(['raw/voice_full.mp3', c.at, 2.8, { from: c.a, dur: c.b - c.a, fade: 0.012 }]));
+ev.push(['raw/music.mp3', 0, 0.075, { dur: 69.6, fadeOut: 1.2 }]);
 sfx('horde_loop', 0, 0.5, { dur: T.hookEnd, fadeOut: 0.3 }); sfx('horde_bang', 0.15, 0.4);
 sfx('rewind', T.hookEnd - 0.15, 0.8);
 sfx('day_amb', T.rewindEnd, 0.22, { loop: true, dur: T.I - T.rewindEnd, fadeOut: 1 });
@@ -19,7 +20,7 @@ sfx('tick', T.I - 2.8, 0.35, { dur: 2.8 }); sfx('boom', T.I, 0.9); sfx('riser', 
 sfx('horde_loop', T.orda - 0.3, 0.42, { loop: true, dur: T.J - T.orda + 0.3, fadeOut: 1.2 });
 sfx('horde_loop', T.J - 1.0, 0.1, { loop: true, dur: 8.2, fadeOut: 0.6 });
 sfx('night_amb', T.I + 1.2, 0.3, { loop: true, dur: 69.2 - T.I - 1.2, fadeOut: 0.5 });
-sfx('drone_end', T.J, 0.4); sfx('light_flick', T.svet - 0.05, 0.7); sfx('knock', T.voiceEnd + 0.25, 1.2, { dur: 0.8, fadeOut: 0.08 }); sfx('boom', T.voiceEnd + 1.67, 0.5, { dur: 1.2, fadeOut: 0.5 });
+sfx('drone_end', T.J, 0.4); sfx('light_flick', T.svet - 0.05, 0.7); sfx('knock', T.voiceEnd + 0.25, 2.4, { dur: 0.8, fadeOut: 0.08 }); sfx('boom', T.voiceEnd + 1.67, 0.5, { dur: 1.2, fadeOut: 0.5 });
 const args = ['-loglevel', 'error', '-y'], f = [];
 ev.forEach(([file, at, v, o], i) => {
   if (o.loop) args.push('-stream_loop', '-1'); args.push('-i', file);
