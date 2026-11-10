@@ -6,7 +6,7 @@ const SFX_GAIN = 0.42; // effects sit well under the narration
 const sfx = (n, at, v, o = {}) => ev.push([`raw/sfx/${n}.mp3`, at, v * SFX_GAIN, o]);
 cuts.forEach(c => ev.push(['raw/voice_full.mp3', c.at, 2.8, { from: c.a, dur: c.b - c.a, fade: 0.012 }]));
 ev.push(['raw/music.mp3', 0, 0.075, { dur: 69.6, fadeOut: 1.2 }]);
-sfx('horde_loop', 0, 0.5, { dur: T.hookEnd, fadeOut: 0.3 }); sfx('horde_bang', 0.15, 0.4);
+sfx('horde_loop', 0, 0.22, { dur: T.hookEnd, fadeOut: 0.3 }); sfx('horde_bang', 0.15, 0.15);
 sfx('rewind', T.hookEnd - 0.15, 0.8);
 sfx('day_amb', T.rewindEnd, 0.22, { loop: true, dur: T.I - T.rewindEnd, fadeOut: 1 });
 for (const t of [T.C, T.D, T.E, T.poetomu, T.G, T.H, T.krysha, T.dvor, T.J]) sfx('whoosh', t - 0.12, 0.35);
