@@ -19,7 +19,7 @@ sfx('tick', T.I - 2.8, 0.35, { dur: 2.8 }); sfx('boom', T.I, 0.9); sfx('riser', 
 sfx('horde_loop', T.orda - 0.3, 0.42, { loop: true, dur: T.J - T.orda + 0.3, fadeOut: 1.2 });
 sfx('horde_loop', T.J - 1.0, 0.1, { loop: true, dur: 8.2, fadeOut: 0.6 });
 sfx('night_amb', T.I + 1.2, 0.3, { loop: true, dur: 69.2 - T.I - 1.2, fadeOut: 0.5 });
-sfx('drone_end', T.J, 0.4); sfx('light_flick', T.svet - 0.05, 0.7); sfx('knock', T.voiceEnd + 0.25, 1.1); sfx('boom', 69.0, 0.5, { dur: 1.0, fadeOut: 0.5 });
+sfx('drone_end', T.J, 0.4); sfx('light_flick', T.svet - 0.05, 0.7); sfx('knock', T.voiceEnd + 0.25, 1.2, { dur: 0.8, fadeOut: 0.08 }); sfx('boom', T.voiceEnd + 1.67, 0.5, { dur: 1.2, fadeOut: 0.5 });
 const args = ['-loglevel', 'error', '-y'], f = [];
 ev.forEach(([file, at, v, o], i) => {
   if (o.loop) args.push('-stream_loop', '-1'); args.push('-i', file);

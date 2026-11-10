@@ -111,7 +111,7 @@ export function buildHorde(scene, T, sirenPos) {
   const mk = (geo, mat) => { geo.setAttribute('aAnim', anim); const im = new THREE.InstancedMesh(geo, mat, N); im.frustumCulled = false; im.visible = false; scene.add(im); return im; };
   const clothes = mk(G.clothes, patchLimbs(new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0 }), uTime));
   const skin = mk(G.skin, patchLimbs(new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0 }), uTime));
-  const eyes = mk(G.eyes, patchLimbs(new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 2.4, 0.5), toneMapped: false }), uTime));
+  const eyes = mk(G.eyes, patchLimbs(new THREE.MeshBasicMaterial({ color: new THREE.Color(1.9, 1.75, 0.4), toneMapped: false }), uTime));
   skin.instanceMatrix = clothes.instanceMatrix; eyes.instanceMatrix = clothes.instanceMatrix;
   clothes.castShadow = true; skin.castShadow = true; clothes.receiveShadow = true; skin.receiveShadow = true;
   const col = new THREE.Color();

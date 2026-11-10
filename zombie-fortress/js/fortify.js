@@ -328,6 +328,11 @@ export function buildFortify(scene, TX, M, T, W, dust) {
     for (const s of [-1, 1]) b.box(M.darkSteel, 0.1, 0.24, LEN, s * 1.82, 0, LEN / 2);
     for (const zz of [0.5, LEN / 2, LEN - 0.4]) { b.box(M.darkSteel, 3.7, 0.035, 0.18, 0, 0.085, zz); for (let k = 0; k < 9; k++) b.add(new THREE.SphereGeometry(0.025, 8, 6), M.steelPlain, new THREE.Matrix4().makeTranslation(-1.6 + k * 0.4, 0.105, zz)); }
     for (const xx of [-1.1, 0, 1.1]) b.box(M.woodDark, 0.16, 0.16, LEN - 0.2, xx, -0.15, LEN / 2);
+    // underside (faces the horde when raised): plank seams, steel cross bands with bolts and an X brace
+    for (let k = 1; k < 9; k++) b.box(M.black, 0.025, 0.02, LEN - 0.1, -1.8 + k * 0.4, -0.075, LEN / 2);
+    for (const zz of [0.35, 1.45, 2.55, 3.65, LEN - 0.3]) { b.box(M.darkSteel, 3.7, 0.05, 0.2, 0, -0.09, zz); for (let k = 0; k < 9; k++) b.add(new THREE.SphereGeometry(0.03, 8, 6), M.steelPlain, new THREE.Matrix4().makeTranslation(-1.6 + k * 0.4, -0.12, zz)); }
+    for (const s of [-1, 1]) b.box(M.darkSteel, 0.14, 0.045, 5.9, 0, -0.1, LEN / 2, null, [0, s * 0.6, 0]);
+    for (const s of [-1, 1]) for (const zz of [1.0, 2.55, 4.1]) { b.box(M.steelPlain, 0.1, 0.06, 0.5, s * 1.45, -0.11, zz); }
     for (const s of [-1, 1]) b.add(new THREE.TorusGeometry(0.07, 0.02, 6, 12), M.steelPlain, new THREE.Matrix4().makeTranslation(s * 1.62, 0.12, LEN - 0.4));
     b.build(g);
     const chainMat = new THREE.MeshStandardMaterial({ color: 0x2c3036, metalness: 0.9, roughness: 0.5 });

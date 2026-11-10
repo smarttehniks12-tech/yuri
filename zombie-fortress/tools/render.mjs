@@ -7,7 +7,9 @@ const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-un
 const p = await b.newPage({ viewport: { width: w, height: Math.round(w * 16 / 9) }, deviceScaleFactor: 1 });
 p.on('pageerror', e => console.log('[pageerror]', e.message));
 p.setDefaultTimeout(180000); await p.goto(`http://localhost:8765/index.html?render&w=${w}`); await p.waitForFunction('window.__ready'); await p.evaluate('window.__ready');
+const ranges = (process.env.RANGES || '0-70').split(',').map(r => r.split('-').map(Number));
 for (let i = k; i < total; i += n) {
+  if (!ranges.some(([a, b]) => i / fps >= a && i / fps < b)) continue;
   const f = `${out}/f_${String(i).padStart(5, '0')}.jpg`; if (fs.existsSync(f)) continue;
   await p.evaluate(t => window.__frame(t), (i + 0.5) / fps);
   await p.screenshot({ path: f + '.tmp.jpg', type: 'jpeg', quality: 93, timeout: 180000 }); fs.renameSync(f + '.tmp.jpg', f);

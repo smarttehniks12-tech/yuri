@@ -101,7 +101,7 @@ function timeOfDay(st) {
 }
 
 // ------------------------------------------------------------------ the twist (basement light)
-const KN = T.knocks || [T.voiceEnd + 0.35, T.voiceEnd + 0.8, T.voiceEnd + 1.25];
+const KN = T.knocks || [T.voiceEnd + 0.35, T.voiceEnd + 0.6, T.voiceEnd + 0.85];
 const T_OFF = KN[KN.length - 1] + 0.42, T_BLACK = T_OFF + 0.4;
 const knockShake = KN.map(t => ({ t, a: 0.035 }));
 let lastTwist = '';
