@@ -1,0 +1,97 @@
+// Lays the narration out on the 70 s timeline: cuts the single TTS take into sentence clips,
+// inserts pauses for the animation beats, and emits word timings + named cues.
+import fs from 'fs';
+import { execSync } from 'child_process';
+const align = JSON.parse(fs.readFileSync('align.json'));
+const words = align.flatMap((s, si) => s.words.map(w => ({ ...w, seg: si })));
+// sentence clips: split after words ending with . ? ! … (and "пришла...")
+const clips = []; let cur = [];
+for (const w of words) { cur.push(w); if (/[.?!…]$/.test(w.w)) { clips.push(cur); cur = []; } }
+if (cur.length) clips.push(cur);
+// extra pause (seconds) inserted BEFORE the clip that starts with the given word occurrence
+const extraBefore = {
+  0: 0.25,  // lead-in
+  3: 0.50,  // "Вам дали" (rewind transition)
+  4: 0.30,  // "Начинаем с окон"
+  6: 0.30,  // "Ставим многослойное"
+  7: 0.80,  // "Дверь"
+  8: 0.20,  // "Меняем"
+  9: 0.80,  // "Дальше — стена"
+  10: 0.20, // "Три метра"
+  11: 0.50, // "Лазать"
+  12: 0.30, // "Но толпа"
+  13: 0.20, // "Поэтому"
+  14: 0.90, // "Зомби идут на звук"
+  15: 0.20, // "Ставим на холме"
+  16: 0.70, // "И главное"
+  17: 0.20, // "На крыше"
+  18: 0.90, // "Время вышло"
+  19: 0.40, // "Орда пришла"
+  20: 0.30, // "и упёрлась"
+  21: 0.30, // "День первый"
+  22: 0.30, // "День сотый"
+  23: 0.30, // "Крепость держится"
+  24: 0.80, // "Но на сотую ночь"
+  25: 0.60, // "А вы туда"
+  26: 0.50, // "Как думаете"
+};
+let shift = 0; const out = []; const cuts = [];
+clips.forEach((c, i) => {
+  shift += extraBefore[i] || 0;
+  const prevEnd = i ? clips[i - 1][clips[i - 1].length - 1].e : 0;
+  const nextStart = i < clips.length - 1 ? clips[i + 1][0].s : c[c.length - 1].e + 0.4;
+  const a = i ? (prevEnd + c[0].s) / 2 : 0, b = (c[c.length - 1].e + nextStart) / 2;
+  cuts.push({ a, b, at: a + shift });
+  c.forEach(w => out.push({ w: w.w, s: +(w.s + shift).toFixed(3), e: +(w.e + shift).toFixed(3), clip: i, seg: w.seg }));
+});
+fs.writeFileSync('words.json', JSON.stringify(out));
+fs.writeFileSync('cuts.json', JSON.stringify(cuts));
+clips.forEach((c, i) => console.log(i, cuts[i].at.toFixed(2), '→', (c[c.length - 1].e + (cuts[i].at - cuts[i].a)).toFixed(2), c.map(w => w.w).join(' ')));
+console.log('voice end', out[out.length - 1].e);
+
+// ---------- named cues + caption chunks -> timeline.js ----------
+const W = out;
+const cue = (prefix, n = 1, exact = false) => { let k = 0; for (const w of W) { const x = w.w.toLowerCase(); if ((exact ? x === prefix : x.startsWith(prefix.toLowerCase())) && ++k === n) return w.s; } throw new Error('cue ' + prefix); };
+const clipStart = i => W.find(w => w.clip === i).s;
+const clipEnd = i => W.filter(w => w.clip === i).pop().e;
+const T = {
+  hookEnd: clipEnd(2) + 0.08, rewindEnd: clipStart(3) - 0.02,
+  B: clipStart(3), sutki: cue('сутки'),
+  C: clipStart(4), steklo: clipStart(5), break: cue('выбьют'), stavim: clipStart(6), bronya: cue('бронестекло'), rolls: cue('рольставни'),
+  D: clipStart(7), menyaem: clipStart(8), steel: cue('стальную'), bolts: cue('засовами'), bar: cue('балкой'),
+  E: clipStart(9), tri: clipStart(10), sverhu: cue('сверху'), spiral: cue('спираль'), lazat: clipStart(11),
+  F: clipStart(12), perelezt: cue('перелезть'), poetomu: clipStart(13), rov: cue('копаем'), kolya: cue('кольями'), most: cue('поднимаем'),
+  G: clipStart(14), stavimSiren: clipStart(15), sirena: cue('сирену'), ujdet: cue('большая'),
+  H: clipStart(16), krysha: clipStart(17), paneli: cue('солнечные'), dvor: cue('во', 1, true), bak: cue('бак'), gryadki: cue('грядки'),
+  I: clipStart(18), orda: clipStart(19), uperlas: clipStart(20), day1: clipStart(21), day100: clipStart(22), derzh: clipStart(23),
+  J: clipStart(24), svet: cue('загорелся'), avy: clipStart(25), kto: clipStart(26), voiceEnd: W[W.length - 1].e,
+  end: 70,
+};
+for (const k in T) T[k] = +T[k].toFixed(3);
+// caption chunks: up to 3 words / 18 chars, never across a sentence clip, break after punctuation
+const clean = s => s.replace(/́/g, '').replace(/[—–]/g, '').replace(/[.,:;]+$/g, '').replace(/\.\.\.$/, '').trim();
+// split into phrases (sentence clip / punctuation), then balance each phrase into chunks of <=3 words, ~16 chars
+const phrases = []; let ph = null;
+for (const w of W) {
+  const txt = clean(w.w);
+  if (!ph || ph.clip !== w.clip || ph.done) { ph = { clip: w.clip, words: [] }; phrases.push(ph); }
+  if (txt) ph.words.push({ t: txt, s: w.s, e: w.e });
+  if (/[.,:;?!…—]$/.test(w.w) || w.w === '—') ph.done = true;
+}
+const chunks = [];
+for (const p of phrases.filter(p => p.words.length)) {
+  const L = p.words.reduce((a, x) => a + x.t.length + 1, 0);
+  const n = Math.max(Math.ceil(L / 19), Math.ceil(p.words.length / 3));
+  const target = L / n; let acc = 0, c = { words: [] }; chunks.push(c);
+  p.words.forEach((w, i) => {
+    const len = w.t.length + 1, left = p.words.length - i;
+    const cl = c.words.reduce((a, x) => a + x.t.length + 1, 0);
+    if (c.words.length && (c.words.length >= 3 || (cl + len / 2 > target && left >= 1 && chunks.filter(x => x.ph === p).length < n))) { c = { words: [] }; chunks.push(c); }
+    c.ph = p; c.words.push(w);
+  });
+}
+const CAPS = chunks.map((c, i) => ({ s: +(c.words[0].s - 0.04).toFixed(3), e: +Math.min(c.words[c.words.length - 1].e + 0.35, i < chunks.length - 1 ? chunks[i + 1].words[0].s - 0.04 : 99).toFixed(3), w: c.words }));
+const js = `// GENERATED by tools/layout.mjs from the ElevenLabs narration timestamps. Do not edit by hand.\n// T: named cue times (seconds on the 70 s video timeline). CAPS: caption chunks with per-word timings.\nexport const T = ${JSON.stringify(T, null, 1)};\nexport const CAPS = ${JSON.stringify(CAPS)};\n`;
+fs.writeFileSync('/home/user/yuri/zombie-fortress/js/timeline.js', js);
+fs.writeFileSync('T.json', JSON.stringify(T, null, 1));
+console.log(T); console.log(CAPS.map(c => c.w.map(x => x.t).join(' ')).join(' | '));

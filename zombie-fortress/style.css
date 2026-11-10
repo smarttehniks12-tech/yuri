@@ -1,0 +1,55 @@
+/* Vertical (9:16) stage. Every size is expressed in --u = 1% of the stage width, so the overlay scales
+   identically on a phone, on a desktop preview and in the 1080x1920 video render. */
+@font-face { font-family: "Montserrat"; font-weight: 900; font-display: block; src: url("fonts/montserrat-cyrillic-900-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Montserrat"; font-weight: 900; font-display: block; src: url("fonts/montserrat-latin-900-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC, U+2190-2193; }
+@font-face { font-family: "Montserrat"; font-weight: 800; font-display: block; src: url("fonts/montserrat-cyrillic-800-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Montserrat"; font-weight: 800; font-display: block; src: url("fonts/montserrat-latin-800-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC, U+2190-2193; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #05070c; overflow: hidden; }
+body { display: flex; align-items: center; justify-content: center; font-family: "Montserrat", "Arial Black", system-ui, sans-serif; color: #fff; -webkit-tap-highlight-color: transparent; user-select: none; }
+#stage { position: relative; --u: 4px; width: calc(var(--u) * 100); height: calc(var(--u) * 177.7778); overflow: hidden; background: #000; }
+#c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: absolute; inset: 0; pointer-events: none; }
+
+/* top widgets */
+#timer, #day { position: absolute; left: 50%; top: calc(var(--u) * 9.5); transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--u) * 2.2); padding: calc(var(--u) * 1.5) calc(var(--u) * 3.6); border-radius: calc(var(--u) * 5);
+  background: rgba(10, 13, 20, 0.62); border: calc(var(--u) * 0.3) solid rgba(255, 255, 255, 0.16); opacity: 0; white-space: nowrap; }
+#timer .lbl, #day .lbl { font-weight: 800; font-size: calc(var(--u) * 2.9); letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.78); }
+#timer .val, #day .val { font-weight: 900; font-size: calc(var(--u) * 5.4); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; color: #ffe14a; }
+#timer.zero .val { color: #ff4a3d; }
+#timer.zero { border-color: rgba(255, 74, 61, 0.7); }
+#day .val { min-width: calc(var(--u) * 11); text-align: center; }
+#step { position: absolute; left: 50%; top: calc(var(--u) * 21.5); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 1.3); opacity: 0; }
+#step .pips { display: flex; gap: calc(var(--u) * 1.1); }
+#step .pips i { width: calc(var(--u) * 6.2); height: calc(var(--u) * 1.1); border-radius: calc(var(--u) * 1); background: rgba(255, 255, 255, 0.28); box-shadow: 0 0 0 calc(var(--u) * 0.2) rgba(0, 0, 0, 0.25); }
+#step .pips i.on { background: #ffe14a; }
+#step .pips i.done { background: #fff; }
+#step .name { font-weight: 900; font-size: calc(var(--u) * 3.5); letter-spacing: 0.07em; text-shadow: 0 calc(var(--u) * 0.35) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.75), 0 0 calc(var(--u) * 0.6) rgba(0, 0, 0, 0.9); white-space: nowrap; }
+
+/* captions */
+#caps { position: absolute; left: 0; right: 0; top: calc(var(--u) * 126); display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 0 calc(var(--u) * 2.4); padding: 0 calc(var(--u) * 6); text-transform: uppercase; font-weight: 900; font-size: calc(var(--u) * 8.4); line-height: 1.12; text-align: center; transform-origin: 50% 40%; }
+#caps span { display: inline-block; color: #fff; paint-order: stroke fill; -webkit-text-stroke: calc(var(--u) * 1.5) #0b0d12; text-shadow: 0 calc(var(--u) * 0.7) calc(var(--u) * 1.6) rgba(0, 0, 0, 0.55); }
+#caps span.on { color: #ffe14a; }
+
+/* full-frame overlays */
+#flash, #fade, #alarm { position: absolute; inset: 0; opacity: 0; }
+#flash { background: #fff; }
+#fade { background: #000; }
+#alarm { background: radial-gradient(ellipse at center, rgba(255, 40, 30, 0) 42%, rgba(255, 40, 30, 0.85) 100%); }
+#endcard { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 3); opacity: 0; text-align: center; }
+#endcard .q { font-weight: 900; font-size: calc(var(--u) * 10.5); letter-spacing: 0.02em; color: #ffe14a; }
+#endcard .s { font-weight: 800; font-size: calc(var(--u) * 4.2); color: rgba(255, 255, 255, 0.86); }
+
+/* player chrome (not part of the rendered video) */
+#bar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--u) * 0.8); background: rgba(255, 255, 255, 0.14); }
+#bar i { display: block; height: 100%; width: 0; background: #ffe14a; }
+#start { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 5); background: linear-gradient(rgba(5, 7, 12, 0.35), rgba(5, 7, 12, 0.72)); cursor: pointer; }
+#start .title { font-weight: 900; font-size: calc(var(--u) * 8.6); text-align: center; line-height: 1.1; padding: 0 calc(var(--u) * 6); text-shadow: 0 calc(var(--u) * 0.6) calc(var(--u) * 2) rgba(0, 0, 0, 0.7); }
+#start .title span { color: #ffe14a; }
+#play { width: calc(var(--u) * 24); height: calc(var(--u) * 24); border-radius: 50%; border: 0; background: #ffe14a; color: #0b0d12; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 calc(var(--u) * 1) calc(var(--u) * 5) rgba(0, 0, 0, 0.5); }
+#play:focus-visible { outline: calc(var(--u) * 0.8) solid #fff; outline-offset: calc(var(--u) * 0.8); }
+#start .hint { font-weight: 800; font-size: calc(var(--u) * 3.4); color: rgba(255, 255, 255, 0.8); letter-spacing: 0.06em; }
+#loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #05070c; font-weight: 800; font-size: calc(var(--u) * 4); color: rgba(255, 255, 255, 0.8); }
+.hidden { display: none !important; }
+body.render #bar, body.render #start, body.render #loading { display: none !important; }

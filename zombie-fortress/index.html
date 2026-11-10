@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Дом против орды зомби — 3D-анимация</title>
+<meta name="theme-color" content="#05070c">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/addons/" } }</script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <div id="alarm"></div>
+    <div id="timer"><span class="lbl">ДО ПРИХОДА ОРДЫ</span><span class="val">24:00:00</span></div>
+    <div id="day"><span class="lbl">ДЕНЬ</span><span class="val">100</span></div>
+    <div id="step"><div class="pips"></div><div class="name"></div></div>
+    <div id="caps"></div>
+    <div id="flash"></div>
+    <div id="fade"></div>
+    <div id="endcard"><div class="q">КТО В ПОДВАЛЕ?</div><div class="s">Твоя версия — в комментариях</div></div>
+  </div>
+  <div id="bar"><i></i></div>
+  <div id="start">
+    <div class="title">ДОМ <span>VS</span> ОРДА ЗОМБИ</div>
+    <button id="play" type="button" aria-label="Смотреть"><svg viewBox="0 0 24 24" width="38%" height="38%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+    <div class="hint">1:10 · со звуком</div>
+  </div>
+  <div id="loading">Загрузка сцены…</div>
+</div>
+<audio id="audio" src="audio/mix.mp3" preload="auto"></audio>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
