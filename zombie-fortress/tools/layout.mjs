@@ -9,38 +9,13 @@ const clips = []; let cur = [];
 for (const w of words) { cur.push(w); if (/[.?!…]$/.test(w.w)) { clips.push(cur); cur = []; } }
 if (cur.length) clips.push(cur);
 // extra pause (seconds) inserted BEFORE the clip that starts with the given word occurrence
-const extraBefore = {
-  0: 0.25,  // lead-in
-  3: 0.50,  // "Вам дали" (rewind transition)
-  4: 0.30,  // "Начинаем с окон"
-  6: 0.30,  // "Ставим многослойное"
-  7: 0.80,  // "Дверь"
-  8: 0.20,  // "Меняем"
-  9: 0.80,  // "Дальше — стена"
-  10: 0.20, // "Три метра"
-  11: 0.50, // "Лазать"
-  12: 0.30, // "Но толпа"
-  13: 0.20, // "Поэтому"
-  14: 0.90, // "Зомби идут на звук"
-  15: 0.20, // "Ставим на холме"
-  16: 0.70, // "И главное"
-  17: 0.20, // "На крыше"
-  18: 0.90, // "Время вышло"
-  19: 0.40, // "Орда пришла"
-  20: 0.30, // "и упёрлась"
-  21: 0.30, // "День первый"
-  22: 0.30, // "День сотый"
-  23: 0.30, // "Крепость держится"
-  24: 0.80, // "Но на сотую ночь"
-  25: 0.60, // "А вы туда"
-  26: 0.50, // "Как думаете"
-};
+const extraBefore = { 0: 0.2, 3: 0.3, 4: 0.15, 6: 0.1, 7: 0.5, 8: 0.1, 9: 0.5, 10: 0.1, 11: 0.25, 12: 0.15, 13: 0.1, 14: 0.6, 15: 0.1, 16: 0.4, 17: 0.1, 18: 0.55, 19: 0.25, 20: 0.15, 21: 0.15, 22: 0.15, 23: 0.15, 24: 0.5, 25: 0.35, 26: 0.3 }; // pauses (s) inserted before sentence clip N
 let shift = 0; const out = []; const cuts = [];
 clips.forEach((c, i) => {
   shift += extraBefore[i] || 0;
   const prevEnd = i ? clips[i - 1][clips[i - 1].length - 1].e : 0;
   const nextStart = i < clips.length - 1 ? clips[i + 1][0].s : c[c.length - 1].e + 0.4;
-  const a = i ? (prevEnd + c[0].s) / 2 : 0, b = (c[c.length - 1].e + nextStart) / 2;
+  const a = i ? (prevEnd + c[0].s) / 2 : Math.max(0, c[0].s - 0.05), b = (c[c.length - 1].e + nextStart) / 2;
   cuts.push({ a, b, at: a + shift });
   c.forEach(w => out.push({ w: w.w, s: +(w.s + shift).toFixed(3), e: +(w.e + shift).toFixed(3), clip: i, seg: w.seg }));
 });
